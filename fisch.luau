@@ -35,6 +35,32 @@ local Window = Rayfield:CreateWindow({
     }
  })
 
+ function SellFishAndReturnAll()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    local currentPosition = rootPart.CFrame
+    local sellPosition = CFrame.new(464, 151, 232)
+    local wasAutoFreezeActive = false
+    if AutoFreeze then
+        wasAutoFreezeActive = true
+        AutoFreeze = false
+    end
+    rootPart.CFrame = sellPosition
+    task.wait(0.5)
+    workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Marc Merchant"):WaitForChild("merchant"):WaitForChild("sellall"):InvokeServer()
+    task.wait(3)
+
+    rootPart.CFrame = currentPosition
+
+    if wasAutoFreezeActive then
+        AutoFreeze = true
+        rememberPosition()
+    end
+end
+
+
+
  local Tab1 = Window:CreateTab("Main", 0)
 
  local Paragraph = Tab1:CreateParagraph({Title = "Information", Content = "This is a work in progress"})
@@ -47,9 +73,9 @@ local Window = Rayfield:CreateWindow({
  })
 
  local Button2 = Tab1:CreateButton({
-    Name = "Button Example2",
+    Name = "Sell all",
     Callback = function()
-        print("Test")
+        SellFishAndReturnAll()
     end,
  })
 
