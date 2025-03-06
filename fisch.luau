@@ -35,9 +35,6 @@ local Window = Rayfield:CreateWindow({
     }
  })
 
- local Tab = Window:CreateTab("Main", "rewind")
+ local Tab1 = Window:CreateTab("Main", "house")
 
-
- local InfoSection = Tab:CreateSection("Information")
-
- local Paragraph = Tab:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
+ local Paragraph = Tab1:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
