@@ -40,4 +40,4 @@ local Window = Rayfield:CreateWindow({
 
  local InfoSection = Tab:CreateSection("Information")
 
- local Label = InfoSection:CreateLabel("Label Example", "rewind")
+ local Label = Tab:CreateLabel("Label Example", "rewind")
