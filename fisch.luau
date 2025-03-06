@@ -36,5 +36,18 @@ local Window = Rayfield:CreateWindow({
  })
 
  local Tab1 = Window:CreateTab("Main", "house")
+ local Section = Tab1:CreateSection("Section")
 
- local Paragraph = Tab1:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
+ local Button = Section:CreateButton({
+    Name = "Button Example",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Notification Title",
+            Content = "Notification Content",
+            Duration = 6.5,
+            Image = "bird",
+         })
+    end,
+ })
+
+ local Paragraph = Section:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
