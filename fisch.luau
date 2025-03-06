@@ -46,5 +46,11 @@ local Window = Rayfield:CreateWindow({
     end,
  })
 
+ local Button2 = Tab1:CreateButton({
+    Name = "Button Example",
+    Callback = function()
+        print("Test")
+    end,
+ })
 
  Rayfield:LoadConfiguration()
