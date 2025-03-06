@@ -7,22 +7,22 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "DaHub",
     LoadingSubtitle = "by sparvish",
     Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
- 
+
     DisableRayfieldPrompts = false,
     DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
- 
+
     ConfigurationSaving = {
        Enabled = true,
        FolderName = nil, -- Create a custom folder for your hub/game
        FileName = "DaHub"
     },
- 
+
     Discord = {
        Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
        Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
        RememberJoins = true -- Set this to false to make them join the discord every time they load it up
     },
- 
+
     KeySystem = false, -- Set this to true to use our key system
     KeySettings = {
        Title = "Untitled",
@@ -36,7 +36,6 @@ local Window = Rayfield:CreateWindow({
  })
 
  local Tab1 = Window:CreateTab("Main", "house")
- 
 
  local Paragraph = Tab1:CreateParagraph({Title = "Information", Content = "This is a work in progress"})
 
