@@ -4,7 +4,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "DaHub | Fisch",
     Icon = "fish-symbol", -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-    LoadingTitle = "DaHub v1",
+    LoadingTitle = "DaHub",
     LoadingSubtitle = "by sparvish",
     Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
  
@@ -35,11 +35,13 @@ local Window = Rayfield:CreateWindow({
     }
  })
 
- local Tab1 = Window:CreateTab("Main", "circle-help")
- local Section = Tab1:CreateSection("Section")
+ local Tab1 = Window:CreateTab("Main", "house")
+ 
+
+ local Paragraph = Tab1:CreateParagraph({Title = "Information", Content = "This is a work in progress"})
 
  local Button = Tab1:CreateButton({
-    Name = "Unload",
+    Name = "Button Example",
     Callback = function()
         Rayfield:Notify({
             Title = "Notification Title",
@@ -49,17 +51,3 @@ local Window = Rayfield:CreateWindow({
          })
     end,
  })
-
- local Button2 = Tab1:CreateButton({
-    Name = "Discord",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "Notification Title",
-            Content = "Notification Content",
-            Duration = 6.5,
-            Image = "circle-help",
-         })
-    end,
- })
-
- local Paragraph = Tab1:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
