@@ -39,7 +39,7 @@ local Window = Rayfield:CreateWindow({
 
  local Paragraph = Tab1:CreateParagraph({Title = "Information", Content = "This is a work in progress"})
 
- local Button = Tab1:CreateButton({
+Tab1:CreateButton({
     Name = "Button Example",
     Callback = function()
         Rayfield:Notify({
