@@ -35,7 +35,7 @@ local Window = Rayfield:CreateWindow({
     }
  })
 
- local Tab1 = Window:CreateTab("Main", "house")
+ local Tab1 = Window:CreateTab("Main", "circle-help")
  local Section = Tab1:CreateSection("Section")
 
  local Button = Tab1:CreateButton({
@@ -45,7 +45,7 @@ local Window = Rayfield:CreateWindow({
             Title = "Notification Title",
             Content = "Notification Content",
             Duration = 6.5,
-            Image = "bird",
+            Image = "circle-help",
          })
     end,
  })
