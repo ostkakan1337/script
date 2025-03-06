@@ -126,31 +126,31 @@ local function createESP(player)
     nameLabel.Name = "ESP_Name"
     nameLabel.Adornee = character:FindFirstChild("Head")
     nameLabel.Size = UDim2.new(0, 200, 0, 50)
-    nameLabel.StudsOffset = Vector3.new(0, 2, 0) -- Above the player
+    nameLabel.StudsOffset = Vector3.new(0, 2.5, 0) -- Above the player
     nameLabel.AlwaysOnTop = true
+    nameLabel.Parent = character
 
     local nameText = Instance.new("TextLabel", nameLabel)
     nameText.Text = player.Name
     nameText.TextColor3 = Color3.new(1, 1, 1)
-    nameText.TextSize = 14
+    nameText.TextSize = 12 -- Smaller text size
     nameText.BackgroundTransparency = 1
     nameText.Size = UDim2.new(1, 0, 1, 0)
-    nameText.Parent = nameLabel
 
     local distanceLabel = Instance.new("BillboardGui")
     distanceLabel.Name = "ESP_Distance"
     distanceLabel.Adornee = character:FindFirstChild("HumanoidRootPart")
     distanceLabel.Size = UDim2.new(0, 200, 0, 50)
-    distanceLabel.StudsOffset = Vector3.new(0, -2, 0) -- Below the player
+    distanceLabel.StudsOffset = Vector3.new(0, -2.5, 0) -- Below the player
     distanceLabel.AlwaysOnTop = true
+    distanceLabel.Parent = character
 
     local distanceText = Instance.new("TextLabel", distanceLabel)
     distanceText.Text = "0 studs"
     distanceText.TextColor3 = Color3.new(1, 1, 1)
-    distanceText.TextSize = 14
+    distanceText.TextSize = 12 -- Smaller text size
     distanceText.BackgroundTransparency = 1
     distanceText.Size = UDim2.new(1, 0, 1, 0)
-    distanceText.Parent = distanceLabel
 
     -- Store ESP objects
     espObjects[player] = {
@@ -256,6 +256,13 @@ game.Players.PlayerRemoving:Connect(function(player)
         espObjects[player].NameLabel:Destroy()
         espObjects[player].DistanceLabel:Destroy()
         espObjects[player] = nil
+    end
+end)
+
+-- Update ESP in real-time
+game:GetService("RunService").RenderStepped:Connect(function()
+    if espEnabled then
+        updateESP()
     end
 end)
 
