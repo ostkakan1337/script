@@ -40,5 +40,4 @@ local Window = Rayfield:CreateWindow({
 
  local InfoSection = Tab:CreateSection("Information")
 
- local Label = Tab:CreateLabel("Label Example", "rewind")
- Label:Set("Label Example", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
+ local Paragraph = Tab:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
