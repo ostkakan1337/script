@@ -47,7 +47,7 @@ local Window = Rayfield:CreateWindow({
  })
 
  local Button2 = Tab1:CreateButton({
-    Name = "Button Example",
+    Name = "Button Example2",
     Callback = function()
         print("Test")
     end,
