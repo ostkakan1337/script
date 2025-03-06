@@ -144,8 +144,12 @@ local TeleportLocations = {
 
 local ZoneNames = {}
 local RodNames = {}
-for i, _ in pairs(TeleportLocations['Zones']) do table.insert(ZoneNames, i) end
-for i, _ in pairs(TeleportLocations['Rods']) do table.insert(RodNames, i) end
+for zoneName, _ in pairs(TeleportLocations['Zones']) do
+    table.insert(ZoneNames, zoneName)
+end
+for rodName, _ in pairs(TeleportLocations['Rods']) do
+    table.insert(RodNames, rodName)
+end
 
 -- Ensure Defaults Are Always Valid
 local selectedZone = ZoneNames[1] or "Moosewood"
@@ -157,6 +161,7 @@ Tab3:CreateDropdown({
     Default = selectedZone,
     Callback = function(Value)
         selectedZone = Value
+        print("Selected Zone:", selectedZone) -- Debug print
     end,
 })
 
@@ -165,17 +170,27 @@ Tab3:CreateButton({
     Callback = function()
         local zoneCFrame = TeleportLocations['Zones'][selectedZone]
         if zoneCFrame then
-            game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = zoneCFrame
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Teleported to " .. selectedZone,
-                Duration = 5,
-                Type = "Success"
-            })
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = zoneCFrame
+                Rayfield:Notify({
+                    Title = "Teleport",
+                    Content = "Teleported to " .. selectedZone,
+                    Duration = 5,
+                    Type = "Success"
+                })
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "Character or HumanoidRootPart not found.",
+                    Duration = 5,
+                    Type = "Error"
+                })
+            end
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Invalid zone selected.",
+                Content = "Invalid zone selected: " .. selectedZone,
                 Duration = 5,
                 Type = "Error"
             })
@@ -191,6 +206,7 @@ Tab3:CreateDropdown({
     Default = selectedRod,
     Callback = function(Value)
         selectedRod = Value
+        print("Selected Rod:", selectedRod) -- Debug print
     end,
 })
 
@@ -199,17 +215,27 @@ Tab3:CreateButton({
     Callback = function()
         local rodCFrame = TeleportLocations['Rods'][selectedRod]
         if rodCFrame then
-            game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = rodCFrame
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Teleported to " .. selectedRod,
-                Duration = 5,
-                Type = "Success"
-            })
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = rodCFrame
+                Rayfield:Notify({
+                    Title = "Teleport",
+                    Content = "Teleported to " .. selectedRod,
+                    Duration = 5,
+                    Type = "Success"
+                })
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "Character or HumanoidRootPart not found.",
+                    Duration = 5,
+                    Type = "Error"
+                })
+            end
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Invalid rod location selected.",
+                Content = "Invalid rod location selected: " .. selectedRod,
                 Duration = 5,
                 Type = "Error"
             })
