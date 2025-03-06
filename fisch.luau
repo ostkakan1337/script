@@ -4,7 +4,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "DaHub | Fisch",
     Icon = "fish-symbol", -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-    LoadingTitle = "DaHub",
+    LoadingTitle = "DaHub v1",
     LoadingSubtitle = "by sparvish",
     Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
  
