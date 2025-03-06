@@ -35,7 +35,7 @@ local Window = Rayfield:CreateWindow({
     }
  })
 
- local Tab1 = Window:CreateTab("Main", "house")
+ local Tab1 = Window:CreateTab("Main", 0)
 
  local Paragraph = Tab1:CreateParagraph({Title = "Information", Content = "This is a work in progress"})
 
@@ -45,3 +45,6 @@ local Window = Rayfield:CreateWindow({
         print("Test")
     end,
  })
+
+
+ Rayfield:LoadConfiguration()
