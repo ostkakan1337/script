@@ -38,8 +38,8 @@ local Window = Rayfield:CreateWindow({
  local Tab1 = Window:CreateTab("Main", "house")
  local Section = Tab1:CreateSection("Section")
 
- local Button = Section:CreateButton({
-    Name = "Button Example",
+ local Button = Tab1:CreateButton({
+    Name = "Unload",
     Callback = function()
         Rayfield:Notify({
             Title = "Notification Title",
@@ -50,4 +50,16 @@ local Window = Rayfield:CreateWindow({
     end,
  })
 
- local Paragraph = Section:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
+ local Button2 = Tab1:CreateButton({
+    Name = "Discord",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Notification Title",
+            Content = "Notification Content",
+            Duration = 6.5,
+            Image = "circle-help",
+         })
+    end,
+ })
+
+ local Paragraph = Tab1:CreateParagraph({Title = "Test", Content = "Paragraph Example"})
