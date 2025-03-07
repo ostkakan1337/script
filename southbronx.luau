@@ -67,7 +67,7 @@ end
 -- Movement Speed Slider
 Tab2:CreateSlider({
     Name = "Movement Speed",
-    Range = {16, 100},
+    Range = {16, 25}, -- Max speed set to 25
     Increment = 1,
     Suffix = " studs",
     CurrentValue = 16,
@@ -105,6 +105,10 @@ local espEnabled = false
 local showNames = true
 local showChams = true
 local showDistance = true
+local showTool = true
+local maxDistance = 500
+local textColor = Color3.new(1, 1, 1)
+local chamsColor = Color3.new(1, 0, 0)
 local espObjects = {}
 
 -- Function to create ESP for a player
@@ -118,7 +122,8 @@ local function createESP(player)
     local highlight = Instance.new("Highlight")
     highlight.Name = "ESP_Highlight"
     highlight.FillTransparency = 0.5
-    highlight.OutlineColor = Color3.new(1, 0, 0)
+    highlight.FillColor = chamsColor -- Set the fill color for the chams
+    highlight.OutlineColor = chamsColor
     highlight.OutlineTransparency = 0
     highlight.Parent = character
 
@@ -126,14 +131,14 @@ local function createESP(player)
     nameLabel.Name = "ESP_Name"
     nameLabel.Adornee = character:FindFirstChild("Head")
     nameLabel.Size = UDim2.new(0, 200, 0, 50)
-    nameLabel.StudsOffset = Vector3.new(0, 2.5, 0) -- Above the player
+    nameLabel.StudsOffset = Vector3.new(0, 3.5, 0) -- Above the player
     nameLabel.AlwaysOnTop = true
     nameLabel.Parent = character
 
     local nameText = Instance.new("TextLabel", nameLabel)
     nameText.Text = player.Name
-    nameText.TextColor3 = Color3.new(1, 1, 1)
-    nameText.TextSize = 12 -- Smaller text size
+    nameText.TextColor3 = textColor
+    nameText.TextSize = 7 -- Smaller text size
     nameText.BackgroundTransparency = 1
     nameText.Size = UDim2.new(1, 0, 1, 0)
 
@@ -141,22 +146,41 @@ local function createESP(player)
     distanceLabel.Name = "ESP_Distance"
     distanceLabel.Adornee = character:FindFirstChild("HumanoidRootPart")
     distanceLabel.Size = UDim2.new(0, 200, 0, 50)
-    distanceLabel.StudsOffset = Vector3.new(0, -2.5, 0) -- Below the player
+    distanceLabel.StudsOffset = Vector3.new(0, -4.0, 0) -- Below the player
     distanceLabel.AlwaysOnTop = true
     distanceLabel.Parent = character
 
     local distanceText = Instance.new("TextLabel", distanceLabel)
     distanceText.Text = "0 studs"
-    distanceText.TextColor3 = Color3.new(1, 1, 1)
-    distanceText.TextSize = 12 -- Smaller text size
+    distanceText.TextColor3 = textColor
+    distanceText.TextSize = 7 -- Smaller text size
     distanceText.BackgroundTransparency = 1
     distanceText.Size = UDim2.new(1, 0, 1, 0)
+
+    local toolLabel = Instance.new("BillboardGui")
+    toolLabel.Name = "ESP_Tool"
+    toolLabel.Adornee = character:FindFirstChild("HumanoidRootPart")
+    toolLabel.Size = UDim2.new(0, 200, 0, 50)
+    toolLabel.StudsOffset = Vector3.new(0, -5.5, 0) -- Below the distance
+    toolLabel.AlwaysOnTop = true
+    toolLabel.Parent = character
+
+    local toolText = Instance.new("TextLabel", toolLabel)
+    toolText.Text = "Tool: None"
+    toolText.TextColor3 = textColor
+    toolText.TextSize = 7 -- Smaller text size
+    toolText.BackgroundTransparency = 1
+    toolText.Size = UDim2.new(1, 0, 1, 0)
 
     -- Store ESP objects
     espObjects[player] = {
         Highlight = highlight,
         NameLabel = nameLabel,
-        DistanceLabel = distanceLabel
+        NameText = nameText,
+        DistanceLabel = distanceLabel,
+        DistanceText = distanceText,
+        ToolLabel = toolLabel,
+        ToolText = toolText
     }
 end
 
@@ -164,19 +188,40 @@ end
 local function updateESP()
     for player, esp in pairs(espObjects) do
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Update distance
             local distance = (player.Character.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            esp.DistanceLabel.TextLabel.Text = math.floor(distance) .. " studs"
+            if distance <= maxDistance then
+                -- Update distance
+                esp.DistanceText.Text = math.floor(distance) .. " studs"
 
-            -- Toggle visibility
-            esp.Highlight.Enabled = showChams and espEnabled
-            esp.NameLabel.Enabled = showNames and espEnabled
-            esp.DistanceLabel.Enabled = showDistance and espEnabled
+                -- Update tool
+                local tool = player.Character:FindFirstChildOfClass("Tool")
+                esp.ToolText.Text = "Tool: " .. (tool and tool.Name or "None")
+
+                -- Update colors
+                esp.NameText.TextColor3 = textColor
+                esp.DistanceText.TextColor3 = textColor
+                esp.ToolText.TextColor3 = textColor
+                esp.Highlight.FillColor = chamsColor -- Update chams fill color
+                esp.Highlight.OutlineColor = chamsColor
+
+                -- Toggle visibility
+                esp.Highlight.Enabled = showChams and espEnabled
+                esp.NameLabel.Enabled = showNames and espEnabled
+                esp.DistanceLabel.Enabled = showDistance and espEnabled
+                esp.ToolLabel.Enabled = showTool and espEnabled
+            else
+                -- Hide ESP if player is beyond max distance
+                esp.Highlight.Enabled = false
+                esp.NameLabel.Enabled = false
+                esp.DistanceLabel.Enabled = false
+                esp.ToolLabel.Enabled = false
+            end
         else
             -- Clean up if player leaves or character is invalid
             esp.Highlight:Destroy()
             esp.NameLabel:Destroy()
             esp.DistanceLabel:Destroy()
+            esp.ToolLabel:Destroy()
             espObjects[player] = nil
         end
     end
@@ -203,6 +248,7 @@ Tab3:CreateToggle({
                 esp.Highlight:Destroy()
                 esp.NameLabel:Destroy()
                 esp.DistanceLabel:Destroy()
+                esp.ToolLabel:Destroy()
             end
             espObjects = {}
         end
@@ -242,6 +288,53 @@ Tab3:CreateToggle({
     end,
 })
 
+-- Toggle for Tool
+Tab3:CreateToggle({
+    Name = "Show Tool",
+    CurrentValue = true,
+    Flag = "ShowTool",
+    Callback = function(value)
+        showTool = value
+        updateESP()
+    end,
+})
+
+-- Max Distance Slider
+Tab3:CreateSlider({
+    Name = "Max Distance",
+    Range = {50, 1000},
+    Increment = 10,
+    Suffix = " studs",
+    CurrentValue = 500,
+    Flag = "MaxDistance",
+    Callback = function(value)
+        maxDistance = value
+        updateESP()
+    end,
+})
+
+-- Color Picker for Text
+Tab3:CreateColorPicker({
+    Name = "Text Color",
+    Color = Color3.new(1, 1, 1),
+    Flag = "TextColor",
+    Callback = function(value)
+        textColor = value
+        updateESP()
+    end,
+})
+
+-- Color Picker for Chams
+Tab3:CreateColorPicker({
+    Name = "Chams Color",
+    Color = Color3.new(1, 0, 0),
+    Flag = "ChamsColor",
+    Callback = function(value)
+        chamsColor = value
+        updateESP()
+    end,
+})
+
 -- Listen for new players
 game.Players.PlayerAdded:Connect(function(player)
     if espEnabled then
@@ -255,6 +348,7 @@ game.Players.PlayerRemoving:Connect(function(player)
         espObjects[player].Highlight:Destroy()
         espObjects[player].NameLabel:Destroy()
         espObjects[player].DistanceLabel:Destroy()
+        espObjects[player].ToolLabel:Destroy()
         espObjects[player] = nil
     end
 end)
