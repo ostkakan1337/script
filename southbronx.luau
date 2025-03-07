@@ -316,7 +316,7 @@ Tab3:CreateSlider({
 -- Color Picker for Text
 Tab3:CreateColorPicker({
     Name = "Text Color",
-    Color = Color3.new(1, 1, 1),
+    Color = textColor, -- Sync with the current text color
     Flag = "TextColor",
     Callback = function(value)
         textColor = value
@@ -327,7 +327,7 @@ Tab3:CreateColorPicker({
 -- Color Picker for Chams
 Tab3:CreateColorPicker({
     Name = "Chams Color",
-    Color = Color3.new(1, 0, 0),
+    Color = chamsColor, -- Sync with the current chams color
     Flag = "ChamsColor",
     Callback = function(value)
         chamsColor = value
@@ -360,6 +360,10 @@ game:GetService("RunService").RenderStepped:Connect(function()
     end
 end)
 
+-- Load configuration and sync colors
 pcall(function()
     Rayfield:LoadConfiguration()
+    -- Sync color pickers with current values
+    Tab3:UpdateColorPicker("TextColor", textColor)
+    Tab3:UpdateColorPicker("ChamsColor", chamsColor)
 end)
