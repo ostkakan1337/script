@@ -48,7 +48,6 @@ ESPSection:AddToggle({
     Name = "Enable ESP",
     Flag = "ESPSection_EnableESP",
     Callback = function(Value)
-        ESP.Enabled = Value
         if Value then
             ESP:Initialize() -- Initialize ESP if enabled
         else
@@ -63,6 +62,7 @@ ESPSection:AddToggle({
     Flag = "ESPSection_TeamCheck",
     Callback = function(Value)
         ESP.TeamCheck = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -75,6 +75,7 @@ ESPSection:AddSlider({
     Max = 1000,
     Callback = function(Value)
         ESP.MaxDistance = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -87,6 +88,7 @@ ESPSection:AddSlider({
     Max = 20,
     Callback = function(Value)
         ESP.FontSize = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -100,6 +102,7 @@ ChamsSection:AddToggle({
     Flag = "ChamsSection_EnableChams",
     Callback = function(Value)
         ESP.Drawing.Chams.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -108,6 +111,7 @@ ChamsSection:AddToggle({
     Flag = "ChamsSection_ThermalEffect",
     Callback = function(Value)
         ESP.Drawing.Chams.Thermal = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -117,6 +121,7 @@ ChamsSection:AddColorPicker({
     Color = Color3.fromRGB(119, 120, 255),
     Callback = function(Value)
         ESP.Drawing.Chams.FillRGB = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -126,6 +131,7 @@ ChamsSection:AddColorPicker({
     Color = Color3.fromRGB(119, 120, 255),
     Callback = function(Value)
         ESP.Drawing.Chams.OutlineRGB = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -139,6 +145,7 @@ NamesSection:AddToggle({
     Flag = "NamesSection_EnableNames",
     Callback = function(Value)
         ESP.Drawing.Names.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -148,6 +155,7 @@ NamesSection:AddColorPicker({
     Color = Color3.fromRGB(255, 255, 255),
     Callback = function(Value)
         ESP.Drawing.Names.RGB = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -161,6 +169,7 @@ DistancesSection:AddToggle({
     Flag = "DistancesSection_EnableDistances",
     Callback = function(Value)
         ESP.Drawing.Distances.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -171,6 +180,7 @@ DistancesSection:AddDropdown({
     Default = "Text",
     Callback = function(Value)
         ESP.Drawing.Distances.Position = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -184,6 +194,7 @@ WeaponsSection:AddToggle({
     Flag = "WeaponsSection_EnableWeapons",
     Callback = function(Value)
         ESP.Drawing.Weapons.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -193,6 +204,7 @@ WeaponsSection:AddColorPicker({
     Color = Color3.fromRGB(119, 120, 255),
     Callback = function(Value)
         ESP.Drawing.Weapons.WeaponTextRGB = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -206,6 +218,7 @@ HealthbarSection:AddToggle({
     Flag = "HealthbarSection_EnableHealthbar",
     Callback = function(Value)
         ESP.Drawing.Healthbar.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -214,6 +227,7 @@ HealthbarSection:AddToggle({
     Flag = "HealthbarSection_ShowHealthText",
     Callback = function(Value)
         ESP.Drawing.Healthbar.HealthText = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -225,6 +239,7 @@ HealthbarSection:AddSlider({
     Max = 5,
     Callback = function(Value)
         ESP.Drawing.Healthbar.Width = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -238,6 +253,7 @@ BoxesSection:AddToggle({
     Flag = "BoxesSection_EnableBoxes",
     Callback = function(Value)
         ESP.Drawing.Boxes.Full.Enabled = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -246,6 +262,7 @@ BoxesSection:AddToggle({
     Flag = "BoxesSection_AnimateBoxes",
     Callback = function(Value)
         ESP.Drawing.Boxes.Animate = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
@@ -257,6 +274,7 @@ BoxesSection:AddSlider({
     Max = 1000,
     Callback = function(Value)
         ESP.Drawing.Boxes.RotationSpeed = Value
+        ESP:UpdateSettings() -- Update ESP settings
     end
 })
 
