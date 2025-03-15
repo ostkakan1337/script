@@ -1,5 +1,5 @@
-local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/functions.luau"))()
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.luau"))()
+local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/functions.lua"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
 local Wait = library.subs.Wait -- Only returns if the GUI has not been terminated. For 'while Wait() do' loops
 
 local PepsisWorld = library:CreateWindow({
@@ -38,7 +38,8 @@ InformationSection:AddButton({
 })
 
 local AutoFishingSection = GeneralTab:CreateSection({
-    Name = "Auto Fishing"
+    Name = "Auto Fishing",
+    Side = 'Right'
 })
 
 local autoShake = false
