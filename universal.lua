@@ -1,7 +1,7 @@
 local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/functions.lua"))()
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
 local Wait = library.subs.Wait
-local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/yourusername/yourrepository/main/ESP.lua"))()
+local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ESP.lua"))()
 
 local PepsisWorld = library:CreateWindow({
     Name = "DaHub | Fisch",
