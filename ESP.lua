@@ -67,12 +67,12 @@ local ESP = {
                 Enabled = false,
                 RGB = Color3.fromRGB(255, 255, 255),
             },
-        };
-    };
+        },
+    },
     Connections = {
-        RunService = RunService;
-    };
-    Fonts = {};
+        RunService = RunService,
+    },
+    Fonts = {},
 }
 
 -- Def & Vars
