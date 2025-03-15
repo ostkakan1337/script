@@ -1,5 +1,5 @@
 local library = {
-	Version = "0.1",
+	Version = "0.2",
 	WorkspaceName = "Theo's Lib",
 	flags = {},
 	signals = {},
@@ -10,12 +10,12 @@ local library = {
 	colored = {},
 	configuration = {
 		hideKeybind = Enum.KeyCode.RightShift,
-		smoothDragging = false,
+		smoothDragging = true,
 		easingStyle = Enum.EasingStyle.Quart,
 		easingDirection = Enum.EasingDirection.Out
 	},
 	colors = {
-		main = Color3.fromRGB(255, 39, 39),
+		main = Color3.fromRGB(60, 59, 208),
 		background = Color3.fromRGB(40, 40, 40),
 		outerBorder = Color3.fromRGB(15, 15, 15),
 		innerBorder = Color3.fromRGB(73, 63, 73),
@@ -329,7 +329,7 @@ do
 			end
 			pcall(function()
 				if library.Backdrop then
-					library.Backdrop.Visible = library_flags["__Designer.Background.UseBackgroundImage"] and true
+					library.Backdrop.Visible = library_flags["__Designer.Background.UseBackgroundImage"] and false
 					library.Backdrop.Image = resolveid(library_flags["__Designer.Background.ImageAssetID"], "__Designer.Background.ImageAssetID") or ""
 					library.Backdrop.ImageColor3 = library_flags["__Designer.Background.ImageColor"] or Color3.new(1, 1, 1)
 					library.Backdrop.ImageTransparency = (library_flags["__Designer.Background.ImageTransparency"] or 95) / 100

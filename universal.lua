@@ -1,43 +1,44 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/functions.luau"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.luau"))()
 
-local Window = Rayfield:CreateWindow({
+local Wait = library.subs.Wait -- Only returns if the GUI has not been terminated. For 'while Wait() do' loops
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/centerepic/sasware-fisch/refs/heads/main/bypasses/V3SOURCE.luau"))()
+
+local PepsisWorld = library:CreateWindow({
     Name = "DaHub | Fisch",
-    Icon = "fish-symbol",
-    LoadingTitle = "DaHub",
-    LoadingSubtitle = "by sparvish",
-    Theme = "Default",
-    
-    ConfigurationSaving = {
-       Enabled = true,
-       FileName = "DaHub"
-    },
+    Themeable = {
+        Info = "by sparvish"
+    }
 })
 
-local Tab1 = Window:CreateTab("Main", 0)
-
-Tab1:CreateDivider()
-
-Tab1:CreateParagraph({
-    Title = "Information",
-    Content = "Welcome to DaHub! Stay updated with the latest features."
+local GeneralTab = PepsisWorld:CreateTab({
+    Name = "Main"
 })
 
-Tab1:CreateButton({
+local InformationSection = GeneralTab:CreateSection({
+    Name = "Information"
+})
+
+InformationSection:AddButton({
     Name = "Join Discord",
     Callback = function()
         setclipboard("https://discord.gg/yourserver")
-        Rayfield:Notify({
+        library:Notify({
             Title = "Discord",
             Content = "Discord invite copied to clipboard!",
             Duration = 5,
             Type = "Success"
         })
-    end,
+    end
 })
 
-Tab1:CreateParagraph({
-    Title = "Changelog",
-    Content = "- Added Auto Cast, Auto Shake, and Auto Reel\n- Implemented Rayfield UI\n- More features coming soon!"
+local AutoFeaturesTab = PepsisWorld:CreateTab({
+    Name = "Auto Features"
+})
+
+local AutoFishingSection = AutoFeaturesTab:CreateSection({
+    Name = "Auto Fishing"
 })
 
 local autoShake = false
@@ -87,47 +88,46 @@ local function AutoReelFunction()
     end
 end
 
-local Tab2 = Window:CreateTab("Auto Features", 0)
-
-Tab2:CreateDivider()
-
-Tab2:CreateToggle({
+AutoFishingSection:AddToggle({
     Name = "Auto Cast",
-    Default = false,
+    Flag = "AutoFishingSection_AutoCast",
     Callback = function(Value)
         AutoCast = Value
         if AutoCast then
             task.spawn(AutoFish)
         end
-    end,
+    end
 })
 
-Tab2:CreateToggle({
+AutoFishingSection:AddToggle({
     Name = "Auto Shake",
-    Default = false,
+    Flag = "AutoFishingSection_AutoShake",
     Callback = function(Value)
         autoShake = Value
         if autoShake then
             task.spawn(AutoShakeFunction)
         end
-    end,
+    end
 })
 
-Tab2:CreateToggle({
+AutoFishingSection:AddToggle({
     Name = "Auto Reel",
-    Default = false,
+    Flag = "AutoFishingSection_AutoReel",
     Callback = function(Value)
         autoReel = Value
         if autoReel then
             task.spawn(AutoReelFunction)
         end
-    end,
+    end
 })
 
--- Teleportation Tab
-local Tab3 = Window:CreateTab("Teleportation", 0)
+local TeleportationTab = PepsisWorld:CreateTab({
+    Name = "Teleportation"
+})
 
-Tab3:CreateDivider()
+local TeleportationSection = TeleportationTab:CreateSection({
+    Name = "Teleportation"
+})
 
 local TeleportLocations = {
     ['Zones'] = {
@@ -147,78 +147,74 @@ local RodNames = {}
 for i, _ in pairs(TeleportLocations['Zones']) do table.insert(ZoneNames, i) end
 for i, _ in pairs(TeleportLocations['Rods']) do table.insert(RodNames, i) end
 
--- Ensure Defaults Are Always Valid
 local selectedZone = ZoneNames[1] or "Moosewood"
 local selectedRod = RodNames[1] or "Heaven Rod"
 
-Tab3:CreateDropdown({
+TeleportationSection:AddDropdown({
     Name = "Select Zone",
-    Options = ZoneNames,
+    List = ZoneNames, -- Change from "Options" to "List"
     Default = selectedZone,
     Callback = function(Value)
         selectedZone = Value
-    end,
+    end
 })
 
-Tab3:CreateButton({
+
+TeleportationSection:AddButton({
     Name = "Teleport to Selected Zone",
     Callback = function()
         local zoneCFrame = TeleportLocations['Zones'][selectedZone]
         if zoneCFrame then
             game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = zoneCFrame
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Teleport",
                 Content = "Teleported to " .. selectedZone,
                 Duration = 5,
                 Type = "Success"
             })
         else
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Error",
                 Content = "Invalid zone selected.",
                 Duration = 5,
                 Type = "Error"
             })
         end
-    end,
+    end
 })
 
-Tab3:CreateDivider()
-
-Tab3:CreateDropdown({
+TeleportationSection:AddDropdown({
     Name = "Select Rod Location",
-    Options = RodNames,
+    List = RodNames, -- Change from "Options" to "List"
     Default = selectedRod,
     Callback = function(Value)
         selectedRod = Value
-    end,
+    end
 })
 
-Tab3:CreateButton({
+
+TeleportationSection:AddButton({
     Name = "Teleport to Selected Rod",
     Callback = function()
         local rodCFrame = TeleportLocations['Rods'][selectedRod]
         if rodCFrame then
             game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = rodCFrame
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Teleport",
                 Content = "Teleported to " .. selectedRod,
                 Duration = 5,
                 Type = "Success"
             })
         else
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Error",
                 Content = "Invalid rod location selected.",
                 Duration = 5,
                 Type = "Error"
             })
         end
-    end,
+    end
 })
-
--- New Teleportation Feature for Specific Spawns
-Tab3:CreateDivider()
 
 local spawnLocations = {
     ["Abyssal Zenith"] = 5, -- Example: workspace.world.spawns["Abyssal Zenith"]:GetChildren()[5]
@@ -233,16 +229,17 @@ end
 
 local selectedSpawn = spawnNames[1] or "Abyssal Zenith"
 
-Tab3:CreateDropdown({
+TeleportationSection:AddDropdown({
     Name = "Select Spawn Location",
-    Options = spawnNames,
+    List = spawnNames, -- Change from "Options" to "List"
     Default = selectedSpawn,
     Callback = function(Value)
         selectedSpawn = Value
-    end,
+    end
 })
 
-Tab3:CreateButton({
+
+TeleportationSection:AddButton({
     Name = "Teleport to Selected Spawn",
     Callback = function()
         local spawnIndex = spawnLocations[selectedSpawn]
@@ -252,14 +249,14 @@ Tab3:CreateButton({
                 local spawnPart = spawnFolder:GetChildren()[spawnIndex]
                 if spawnPart and spawnPart:IsA("BasePart") then
                     game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = spawnPart.CFrame
-                    Rayfield:Notify({
+                    library:Notify({
                         Title = "Teleport",
                         Content = "Teleported to " .. selectedSpawn,
                         Duration = 5,
                         Type = "Success"
                     })
                 else
-                    Rayfield:Notify({
+                    library:Notify({
                         Title = "Error",
                         Content = "Invalid spawn part.",
                         Duration = 5,
@@ -267,7 +264,7 @@ Tab3:CreateButton({
                     })
                 end
             else
-                Rayfield:Notify({
+                library:Notify({
                     Title = "Error",
                     Content = "Spawn folder or part not found.",
                     Duration = 5,
@@ -275,22 +272,25 @@ Tab3:CreateButton({
                 })
             end
         else
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Error",
                 Content = "Invalid spawn location selected.",
                 Duration = 5,
                 Type = "Error"
             })
         end
-    end,
+    end
 })
 
--- Sell All Button
-local Tab4 = Window:CreateTab("Sell All", 0)
+local SellAllTab = PepsisWorld:CreateTab({
+    Name = "Sell All"
+})
 
-Tab4:CreateDivider()
+local SellAllSection = SellAllTab:CreateSection({
+    Name = "Sell All"
+})
 
-Tab4:CreateButton({
+SellAllSection:AddButton({
     Name = "Sell All Fish",
     Callback = function()
         local merchant = workspace.world.npcs["Marc Merchant"]
@@ -298,14 +298,14 @@ Tab4:CreateButton({
             local sellAllFunction = merchant.merchant:FindFirstChild("sellall")
             if sellAllFunction and sellAllFunction:IsA("RemoteFunction") then
                 sellAllFunction:InvokeServer()
-                Rayfield:Notify({
+                library:Notify({
                     Title = "Sell All",
                     Content = "All fish have been sold!",
                     Duration = 5,
                     Type = "Success"
                 })
             else
-                Rayfield:Notify({
+                library:Notify({
                     Title = "Error",
                     Content = "SellAll function not found.",
                     Duration = 5,
@@ -313,16 +313,16 @@ Tab4:CreateButton({
                 })
             end
         else
-            Rayfield:Notify({
+            library:Notify({
                 Title = "Error",
                 Content = "Marc Merchant not found.",
                 Duration = 5,
                 Type = "Error"
             })
         end
-    end,
+    end
 })
 
 pcall(function()
-    Rayfield:LoadConfiguration()
+    library:LoadConfiguration()
 end)
