@@ -1,6 +1,8 @@
 local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/functions.lua"))()
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
 local Wait = library.subs.Wait
+
+-- Load the ESP system as a library
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ESP.lua"))()
 
 local PepsisWorld = library:CreateWindow({
@@ -47,6 +49,11 @@ ESPSection:AddToggle({
     Flag = "ESPSection_EnableESP",
     Callback = function(Value)
         ESP.Enabled = Value
+        if Value then
+            ESP:Initialize() -- Initialize ESP if enabled
+        else
+            ESP:Destroy() -- Destroy ESP if disabled
+        end
     end
 })
 
