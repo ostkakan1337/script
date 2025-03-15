@@ -143,18 +143,20 @@ function ESP:Initialize()
     self.ScreenGui = Functions:Create("ScreenGui", {
         Parent = CoreGui,
         Name = "ESPHolder",
-    });
+    })
 
     -- Start ESP for all players
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= lplayer then
+        if player ~= lplayer and player.Character then -- Check if player has a character
             coroutine.wrap(self.CreateESP)(player)
         end
     end
 
     -- Listen for new players
     Players.PlayerAdded:Connect(function(player)
-        coroutine.wrap(self.CreateESP)(player)
+        if player.Character then -- Check if player has a character
+            coroutine.wrap(self.CreateESP)(player)
+        end
     end)
 end
 
