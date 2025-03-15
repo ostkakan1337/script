@@ -1540,8 +1540,8 @@ function library:CreateWindow(options, ...)
 	local windowoptions = options
 	local windowName = options.Name or "Unnamed Window"
 	options.Name = windowName
-	if windowName and #windowName > 0 and library.WorkspaceName == "Pepsi Lib" then
-		library.WorkspaceName = convertfilename(windowName, "Pepsi Lib")
+	if windowName and #windowName > 0 and library.WorkspaceName == "Theos Lib" then
+		library.WorkspaceName = convertfilename(windowName, "Theos Lib")
 	end
 	local pepsiLibrary = Instance_new("ScreenGui")
 	library.MainScreenGui, MainScreenGui = pepsiLibrary, pepsiLibrary
@@ -6917,7 +6917,7 @@ function library:CreateWindow(options, ...)
 		}}, {"AddPersistence", "__Designer.Persistence.ThemeFile", filessection, {
 			Name = "Theme Profile",
 			Flag = "__Designer.Files.ThemeFile",
-			Workspace = "Pepsi Lib Themes",
+			Workspace = "UI Themes",
 			Flags = flags,
 			Suffix = "Theme",
 			Desginer = true
@@ -7011,7 +7011,7 @@ function library:CreateWindow(options, ...)
 		end
 		if options.Credit ~= false then
 			daaata[1 + #daaata] = {"AddLabel", "__Designer.Label.Creator", detailssection, {
-				Text = "Library by Pepsi#5229 "
+				Text = "UI Made by sparvish "
 			}}
 		elseif "Gee, thanks for your support." then
 		end
