@@ -2,22 +2,8 @@ local funcs = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkaka
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
 local Wait = library.subs.Wait
 
-local ESP = {
-    Enabled = false, -- Ensure this is set to false by default
-    TeamCheck = false,
-    MaxDistance = 200,
-    FontSize = 11,
-    -- ... rest of the ESP configuration
-}
+
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ESP.lua"))()
-
-local ESP = {
-    Enabled = false, -- Ensure this is set to false by default
-    TeamCheck = false,
-    MaxDistance = 200,
-    FontSize = 11,
-
-}
 
 local PepsisWorld = library:CreateWindow({
     Name = "DaHub | Fisch",
