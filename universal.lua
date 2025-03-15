@@ -47,6 +47,7 @@ local ESPSection = ESPTab:CreateSection({
 ESPSection:AddToggle({
     Name = "Enable ESP",
     Flag = "ESPSection_EnableESP",
+    Default = false, -- ESP is disabled by default
     Callback = function(Value)
         if Value then
             ESP:Initialize() -- Initialize ESP if enabled
