@@ -217,6 +217,112 @@ Tab3:CreateButton({
     end,
 })
 
+-- New Teleportation Feature for Specific Spawns
+Tab3:CreateDivider()
+
+local spawnLocations = {
+    ["Abyssal Zenith"] = 5, -- Example: workspace.world.spawns["Abyssal Zenith"]:GetChildren()[5]
+    ["Challengers Deep"] = 4, -- Example: workspace.world.spawns["Challengers Deep"]:GetChildren()[4]
+    -- Add more locations as needed
+}
+
+local spawnNames = {}
+for name, _ in pairs(spawnLocations) do
+    table.insert(spawnNames, name)
+end
+
+local selectedSpawn = spawnNames[1] or "Abyssal Zenith"
+
+Tab3:CreateDropdown({
+    Name = "Select Spawn Location",
+    Options = spawnNames,
+    Default = selectedSpawn,
+    Callback = function(Value)
+        selectedSpawn = Value
+    end,
+})
+
+Tab3:CreateButton({
+    Name = "Teleport to Selected Spawn",
+    Callback = function()
+        local spawnIndex = spawnLocations[selectedSpawn]
+        if spawnIndex then
+            local spawnFolder = workspace.world.spawns[selectedSpawn]
+            if spawnFolder and #spawnFolder:GetChildren() >= spawnIndex then
+                local spawnPart = spawnFolder:GetChildren()[spawnIndex]
+                if spawnPart and spawnPart:IsA("BasePart") then
+                    game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = spawnPart.CFrame
+                    Rayfield:Notify({
+                        Title = "Teleport",
+                        Content = "Teleported to " .. selectedSpawn,
+                        Duration = 5,
+                        Type = "Success"
+                    })
+                else
+                    Rayfield:Notify({
+                        Title = "Error",
+                        Content = "Invalid spawn part.",
+                        Duration = 5,
+                        Type = "Error"
+                    })
+                end
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "Spawn folder or part not found.",
+                    Duration = 5,
+                    Type = "Error"
+                })
+            end
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Invalid spawn location selected.",
+                Duration = 5,
+                Type = "Error"
+            })
+        end
+    end,
+})
+
+-- Sell All Button
+local Tab4 = Window:CreateTab("Sell All", 0)
+
+Tab4:CreateDivider()
+
+Tab4:CreateButton({
+    Name = "Sell All Fish",
+    Callback = function()
+        local merchant = workspace.world.npcs["Marc Merchant"]
+        if merchant and merchant:FindFirstChild("merchant") then
+            local sellAllFunction = merchant.merchant:FindFirstChild("sellall")
+            if sellAllFunction and sellAllFunction:IsA("RemoteFunction") then
+                sellAllFunction:InvokeServer()
+                Rayfield:Notify({
+                    Title = "Sell All",
+                    Content = "All fish have been sold!",
+                    Duration = 5,
+                    Type = "Success"
+                })
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "SellAll function not found.",
+                    Duration = 5,
+                    Type = "Error"
+                })
+            end
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Marc Merchant not found.",
+                Duration = 5,
+                Type = "Error"
+            })
+        end
+    end,
+})
+
 pcall(function()
     Rayfield:LoadConfiguration()
 end)
