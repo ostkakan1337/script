@@ -213,6 +213,15 @@ Players.PlayerRemoving:Connect(function(plr)
     end
 end)
 
+-- Main ESP Update Loop
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= lplayer then
+            UpdateESP(plr)
+        end
+    end
+end)
+
 -- UI Library Integration
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
 local PepsisWorld = library:CreateWindow({
