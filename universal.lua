@@ -550,3 +550,169 @@ FontSizeSection:AddSlider({
         end
     end
 })
+
+-- Movement Tab
+local MovementTab = PepsisWorld:CreateTab({
+    Name = "Movement"
+})
+
+-- Movement Settings Section
+local MovementSection = MovementTab:CreateSection({
+    Name = "Movement Settings"
+})
+
+-- Movement Speed Slider
+local MovementSpeed = 16 -- Default movement speed
+MovementSection:AddSlider({
+    Name = "Movement Speed",
+    Flag = "MovementSection_MovementSpeed",
+    Value = 16,
+    Min = 0,
+    Max = 100,
+    Callback = function(Value)
+        MovementSpeed = Value
+        -- Update the player's walkspeed
+        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if Humanoid then
+            Humanoid.WalkSpeed = MovementSpeed
+        end
+    end
+})
+
+-- Jump Power Slider
+local JumpPower = 50 -- Default jump power
+MovementSection:AddSlider({
+    Name = "Jump Power",
+    Flag = "MovementSection_JumpPower",
+    Value = 50,
+    Min = 0,
+    Max = 200,
+    Callback = function(Value)
+        JumpPower = Value
+        -- Update the player's jumppower
+        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if Humanoid then
+            Humanoid.JumpPower = JumpPower
+        end
+    end
+})
+
+-- Automatically update walkspeed and jumppower when the player's character changes
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    local Humanoid = Character:WaitForChild("Humanoid")
+    Humanoid.WalkSpeed = MovementSpeed
+    Humanoid.JumpPower = JumpPower
+end)
+
+-- No Clip and Fly Section
+local NoClipFlySection = MovementTab:CreateSection({
+    Name = "No Clip and Fly"
+})
+
+-- No Clip Toggle
+local NoClipEnabled = false
+NoClipFlySection:AddToggle({
+    Name = "Enable No Clip",
+    Flag = "NoClipFlySection_NoClip",
+    Callback = function(Value)
+        NoClipEnabled = Value
+        if NoClipEnabled then
+            -- Enable No Clip
+            LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+            RunService.Stepped:Connect(function()
+                if NoClipEnabled and LocalPlayer.Character then
+                    for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            -- Disable No Clip
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- Fly Toggle
+local FlyEnabled = false
+local FlySpeed = 50 -- Default fly speed
+local BodyVelocity -- Declare BodyVelocity outside the toggle callback
+
+NoClipFlySection:AddToggle({
+    Name = "Enable Fly",
+    Flag = "NoClipFlySection_Fly",
+    Callback = function(Value)
+        FlyEnabled = Value
+        if FlyEnabled then
+            -- Enable Fly
+            if LocalPlayer.Character and LocalPlayer.Character.PrimaryPart then
+                BodyVelocity = Instance.new("BodyVelocity")
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge) -- Allow full movement
+                BodyVelocity.Parent = LocalPlayer.Character.PrimaryPart
+
+                -- Fly logic
+                local FlyConnection
+                FlyConnection = RunService.Stepped:Connect(function()
+                    if FlyEnabled and LocalPlayer.Character and LocalPlayer.Character.PrimaryPart then
+                        local Camera = workspace.CurrentCamera
+                        local RootPart = LocalPlayer.Character.PrimaryPart
+                        local LookVector = Camera.CFrame.LookVector
+                        local RightVector = Camera.CFrame.RightVector
+
+                        -- Reset velocity
+                        BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+
+                        -- Movement based on input
+                        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity + LookVector * FlySpeed
+                        end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity - LookVector * FlySpeed
+                        end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity - RightVector * FlySpeed
+                        end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity + RightVector * FlySpeed
+                        end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity + Vector3.new(0, FlySpeed, 0)
+                        end
+                        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                            BodyVelocity.Velocity = BodyVelocity.Velocity - Vector3.new(0, FlySpeed, 0)
+                        end
+                    else
+                        -- Disconnect the fly connection if fly is disabled
+                        FlyConnection:Disconnect()
+                    end
+                end)
+            end
+        else
+            -- Disable Fly
+            if BodyVelocity then
+                BodyVelocity:Destroy()
+            end
+        end
+    end
+})
+
+-- Fly Speed Slider
+NoClipFlySection:AddSlider({
+    Name = "Fly Speed",
+    Flag = "NoClipFlySection_FlySpeed",
+    Value = 50,
+    Min = 0,
+    Max = 200,
+    Callback = function(Value)
+        FlySpeed = Value
+    end
+})
