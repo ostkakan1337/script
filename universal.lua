@@ -53,10 +53,10 @@ local ESP = {
     MaxDistance = 200,
     FontSize = 11,
     Drawing = {
-        Boxes = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) }, -- White boxes
-        Names = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) }, -- White names
-        Distances = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) }, -- White distances
-        Chams = { Enabled = false, FillColor = Color3.fromRGB(119, 120, 255), OutlineColor = Color3.fromRGB(119, 120, 255), OutlineTransparency = 0 } -- Purple fill and outline
+        Boxes = { Enabled = false, Color = Color3.fromRGB(255, 255, 255), Style = "Dynamic" }, -- Default to Dynamic
+        Names = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) },
+        Distances = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) },
+        Chams = { Enabled = false, FillColor = Color3.fromRGB(119, 120, 255), OutlineColor = Color3.fromRGB(119, 120, 255), OutlineTransparency = 1 } -- Outline off by default
     }
 }
 
@@ -64,6 +64,48 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = game.Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
+
+-- Function to calculate the 2D bounding box of a player's character
+local function CalculateBoundingBox(Character)
+    local RootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not RootPart then return nil end
+
+    local Min, Max = RootPart.Position, RootPart.Position
+    for _, Part in pairs(Character:GetChildren()) do
+        if Part:IsA("BasePart") then
+            local PartMin = Part.Position - Part.Size / 2
+            local PartMax = Part.Position + Part.Size / 2
+            Min = Vector3.new(math.min(Min.X, PartMin.X), math.min(Min.Y, PartMin.Y), math.min(Min.Z, PartMin.Z))
+            Max = Vector3.new(math.max(Max.X, PartMax.X), math.max(Max.Y, PartMax.Y), math.max(Max.Z, PartMax.Z))
+        end
+    end
+
+    local Corners = {
+        Vector3.new(Min.X, Min.Y, Min.Z),
+        Vector3.new(Max.X, Min.Y, Min.Z),
+        Vector3.new(Min.X, Max.Y, Min.Z),
+        Vector3.new(Max.X, Max.Y, Min.Z),
+        Vector3.new(Min.X, Min.Y, Max.Z),
+        Vector3.new(Max.X, Min.Y, Max.Z),
+        Vector3.new(Min.X, Max.Y, Max.Z),
+        Vector3.new(Max.X, Max.Y, Max.Z)
+    }
+
+    local ScreenMin, ScreenMax = Vector2.new(math.huge, math.huge), Vector2.new(-math.huge, -math.huge)
+    for _, Corner in pairs(Corners) do
+        local ScreenPos = Camera:WorldToViewportPoint(Corner)
+        if ScreenPos.Z > 0 then
+            ScreenMin = Vector2.new(math.min(ScreenMin.X, ScreenPos.X), math.min(ScreenMin.Y, ScreenPos.Y))
+            ScreenMax = Vector2.new(math.max(ScreenMax.X, ScreenPos.X), math.max(ScreenMax.Y, ScreenPos.Y))
+        end
+    end
+
+    return ScreenMin, ScreenMax
+end
+-- Function to approximate text width
+local function GetTextWidth(text, fontSize)
+    return #text * (fontSize / 2) -- Approximation based on font size and character count
+end
 
 -- Function to create ESP elements
 local function CreateESP(Player)
@@ -74,8 +116,8 @@ local function CreateESP(Player)
     local Box = Drawing.new("Square")
     Box.Visible = false
     Box.Color = ESP.Drawing.Boxes.Color
-    Box.Thickness = 1 -- Thin boxes
-    Box.Filled = false -- No fill, just outline
+    Box.Thickness = 1 -- Thin lines
+    Box.Filled = false -- Not filled (hollow)
 
     -- Name ESP
     local Name = Drawing.new("Text")
@@ -100,33 +142,82 @@ local function CreateESP(Player)
     Chams.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     Chams.Enabled = false
 
+    -- 3D Box Lines
+    local Lines = {}
+    for i = 1, 12 do
+        Lines[i] = Drawing.new("Line")
+        Lines[i].Visible = false
+        Lines[i].Color = ESP.Drawing.Boxes.Color
+        Lines[i].Thickness = 1
+    end
+
     -- Update ESP
-    RunService.RenderStepped:Connect(function()
+    local RenderConnection
+    RenderConnection = RunService.RenderStepped:Connect(function()
         if ESP.Enabled and Character and Character:FindFirstChild("HumanoidRootPart") then
             local RootPart = Character.HumanoidRootPart
             local Position, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
             local DistanceFromPlayer = (Camera.CFrame.Position - RootPart.Position).Magnitude
 
             if OnScreen and DistanceFromPlayer <= ESP.MaxDistance then
-                -- Calculate box size dynamically based on player's bounding box
-                local Top = Camera:WorldToViewportPoint((Character:GetModelCFrame() * CFrame.new(0, Character:GetExtentsSize().Y / 2, 0)).Position
-                local Bottom = Camera:WorldToViewportPoint((Character:GetModelCFrame() * CFrame.new(0, -Character:GetExtentsSize().Y / 2, 0)).Position
-                local Width = (Top - Bottom).X
-                local Height = (Top - Bottom).Y
-
                 -- Box ESP
                 if ESP.Drawing.Boxes.Enabled then
-                    Box.Size = Vector2.new(Width, Height)
-                    Box.Position = Vector2.new(Position.X - Width / 2, Position.Y - Height / 2)
-                    Box.Color = ESP.Drawing.Boxes.Color
-                    Box.Visible = true
+                    if ESP.Drawing.Boxes.Style == "Dynamic" then
+                        -- Calculate bounding box
+                        local ScreenMin, ScreenMax = CalculateBoundingBox(Character)
+                        if ScreenMin and ScreenMax then
+                            Box.Size = Vector2.new(ScreenMax.X - ScreenMin.X, ScreenMax.Y - ScreenMin.Y)
+                            Box.Position = ScreenMin
+                            Box.Visible = true
+                            Box.Color = ESP.Drawing.Boxes.Color -- Update color in real-time
+                        else
+                            Box.Visible = false
+                        end
+                        for _, Line in pairs(Lines) do
+                            Line.Visible = false -- Hide 3D box lines
+                        end
+                    elseif ESP.Drawing.Boxes.Style == "3D" then
+                        -- 3D Box (fixed size)
+                        local CF = RootPart.CFrame
+                        local Size = Vector3.new(4, 6, 2) -- Adjust size as needed
+
+                        local Corners = {
+                            CF * CFrame.new(-Size.X / 2, Size.Y / 2, -Size.Z / 2).Position,
+                            CF * CFrame.new(Size.X / 2, Size.Y / 2, -Size.Z / 2).Position,
+                            CF * CFrame.new(Size.X / 2, -Size.Y / 2, -Size.Z / 2).Position,
+                            CF * CFrame.new(-Size.X / 2, -Size.Y / 2, -Size.Z / 2).Position,
+                            CF * CFrame.new(-Size.X / 2, Size.Y / 2, Size.Z / 2).Position,
+                            CF * CFrame.new(Size.X / 2, Size.Y / 2, Size.Z / 2).Position,
+                            CF * CFrame.new(Size.X / 2, -Size.Y / 2, Size.Z / 2).Position,
+                            CF * CFrame.new(-Size.X / 2, -Size.Y / 2, Size.Z / 2).Position
+                        }
+
+                        local Indices = {
+                            {1, 2}, {2, 3}, {3, 4}, {4, 1},
+                            {5, 6}, {6, 7}, {7, 8}, {8, 5},
+                            {1, 5}, {2, 6}, {3, 7}, {4, 8}
+                        }
+
+                        for i, IndexPair in pairs(Indices) do
+                            local Start, End = Camera:WorldToViewportPoint(Corners[IndexPair[1]]), Camera:WorldToViewportPoint(Corners[IndexPair[2]])
+                            Lines[i].From = Vector2.new(Start.X, Start.Y)
+                            Lines[i].To = Vector2.new(End.X, End.Y)
+                            Lines[i].Color = ESP.Drawing.Boxes.Color -- Update color in real-time
+                            Lines[i].Visible = true
+                        end
+                        Box.Visible = false -- Hide dynamic box
+                    end
                 else
                     Box.Visible = false
+                    for _, Line in pairs(Lines) do
+                        Line.Visible = false
+                    end
                 end
 
                 -- Name ESP
                 if ESP.Drawing.Names.Enabled then
-                    Name.Position = Vector2.new(Position.X, Position.Y - Height / 2 - 20)
+                    local NameWidth = GetTextWidth(Player.Name, ESP.FontSize)
+                    Name.Position = Vector2.new(Position.X - NameWidth / 2, Position.Y - Box.Size.Y / 2 - 20) -- Centered above
                     Name.Color = ESP.Drawing.Names.Color
                     Name.Size = ESP.FontSize
                     Name.Visible = true
@@ -136,8 +227,10 @@ local function CreateESP(Player)
 
                 -- Distance ESP
                 if ESP.Drawing.Distances.Enabled then
-                    Distance.Position = Vector2.new(Position.X, Position.Y + Height / 2 + 10)
-                    Distance.Text = tostring(math.floor(DistanceFromPlayer)) .. " studs"
+                    local DistanceText = tostring(math.floor(DistanceFromPlayer)) .. " studs"
+                    local DistanceWidth = GetTextWidth(DistanceText, ESP.FontSize)
+                    Distance.Position = Vector2.new(Position.X - DistanceWidth / 2, Position.Y + Box.Size.Y / 2 + 10) -- Centered below
+                    Distance.Text = DistanceText
                     Distance.Color = ESP.Drawing.Distances.Color
                     Distance.Size = ESP.FontSize
                     Distance.Visible = true
@@ -160,13 +253,31 @@ local function CreateESP(Player)
                 Name.Visible = false
                 Distance.Visible = false
                 Chams.Enabled = false
+                for _, Line in pairs(Lines) do
+                    Line.Visible = false
+                end
             end
         else
             Box.Visible = false
             Name.Visible = false
             Distance.Visible = false
             Chams.Enabled = false
+            for _, Line in pairs(Lines) do
+                Line.Visible = false
+            end
         end
+    end)
+
+    -- Clean up when player leaves
+    Player.CharacterRemoving:Connect(function()
+        Box:Remove()
+        Name:Remove()
+        Distance:Remove()
+        Chams:Destroy()
+        for _, Line in pairs(Lines) do
+            Line:Remove()
+        end
+        RenderConnection:Disconnect()
     end)
 end
 
@@ -184,12 +295,21 @@ end
 
 -- Function to destroy ESP
 local function DestroyESP()
-    for _, drawing in pairs(Drawing.GetObjects()) do
-        drawing:Remove()
-    end
-    for _, highlight in pairs(game.CoreGui:GetChildren()) do
-        if highlight:IsA("Highlight") then
-            highlight:Destroy()
+    for _, Player in pairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            local Character = Player.Character
+            if Character and Character:FindFirstChild("HumanoidRootPart") then
+                local ESPData = Character:FindFirstChild("ESPData")
+                if ESPData then
+                    ESPData.Box:Remove()
+                    ESPData.Name:Remove()
+                    ESPData.Distance:Remove()
+                    ESPData.Chams:Destroy()
+                    for _, Line in pairs(ESPData.Lines) do
+                        Line:Remove()
+                    end
+                end
+            end
         end
     end
 end
@@ -235,19 +355,6 @@ ESPSection:AddSlider({
     Max = 20,
     Callback = function(Value)
         ESP.FontSize = Value
-        -- Update font size for all ESP elements
-        for _, Player in pairs(Players:GetPlayers()) do
-            if Player ~= LocalPlayer then
-                local Character = Player.Character
-                if Character and Character:FindFirstChild("HumanoidRootPart") then
-                    local ESPData = Character:FindFirstChild("ESPData")
-                    if ESPData then
-                        ESPData.Name.Size = Value
-                        ESPData.Distance.Size = Value
-                    end
-                end
-            end
-        end
     end
 })
 
@@ -270,6 +377,17 @@ BoxesSection:AddColorPicker({
     Color = Color3.fromRGB(255, 255, 255), -- White
     Callback = function(Value)
         ESP.Drawing.Boxes.Color = Value
+    end
+})
+
+-- Add Dropdown for Box Styles
+BoxesSection:AddDropdown({
+    Name = "Box Style",
+    Flag = "BoxesSection_BoxStyle",
+    Default = "Dynamic",
+    List = {"Dynamic", "3D"},
+    Callback = function(Value)
+        ESP.Drawing.Boxes.Style = Value
     end
 })
 
