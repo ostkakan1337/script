@@ -1,6 +1,5 @@
--- Load UI Library
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
-
+shared.force_designer = true
 local PepsisWorld = library:CreateWindow({
     Name = "DaHub | Fisch",
     Themeable = {
@@ -23,7 +22,7 @@ InformationSection:AddButton({
         setclipboard("https://discord.gg/yourserver")
         library:Notify({
             Title = "Discord",
-            Content = "Discord invite copied to clipboard!",
+            Text = "Discord invite copied to clipboard!",
             Duration = 5,
             Type = "Success"
         })
@@ -52,6 +51,8 @@ local ESP = {
     TeamCheck = false,
     MaxDistance = 200,
     FontSize = 11,
+    HealthBarEnabled = false,
+    HealthPercentageEnabled = false,
     Drawing = {
         Boxes = { Enabled = false, Color = Color3.fromRGB(255, 255, 255), Style = "Dynamic" }, -- Default to Dynamic
         Names = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) },
@@ -64,11 +65,13 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = game.Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
-
 -- Function to calculate the 2D bounding box of a player's character
 local function CalculateBoundingBox(Character)
     local RootPart = Character:FindFirstChild("HumanoidRootPart")
-    if not RootPart then return nil end
+    if not RootPart then
+        print("RootPart is nil for character:", Character)
+        return nil, nil
+    end
 
     local Min, Max = RootPart.Position, RootPart.Position
     for _, Part in pairs(Character:GetChildren()) do
@@ -94,7 +97,7 @@ local function CalculateBoundingBox(Character)
     local ScreenMin, ScreenMax = Vector2.new(math.huge, math.huge), Vector2.new(-math.huge, -math.huge)
     for _, Corner in pairs(Corners) do
         local ScreenPos = Camera:WorldToViewportPoint(Corner)
-        if ScreenPos.Z > 0 then
+        if ScreenPos and ScreenPos.Z > 0 then
             ScreenMin = Vector2.new(math.min(ScreenMin.X, ScreenPos.X), math.min(ScreenMin.Y, ScreenPos.Y))
             ScreenMax = Vector2.new(math.max(ScreenMax.X, ScreenPos.X), math.max(ScreenMax.Y, ScreenPos.Y))
         end
@@ -102,15 +105,14 @@ local function CalculateBoundingBox(Character)
 
     return ScreenMin, ScreenMax
 end
--- Function to approximate text width
-local function GetTextWidth(text, fontSize)
-    return #text * (fontSize / 2) -- Approximation based on font size and character count
-end
 
 -- Function to create ESP elements
 local function CreateESP(Player)
     local Character = Player.Character
-    if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+        print("Character or HumanoidRootPart is nil for player:", Player)
+        return
+    end
 
     -- Box ESP
     local Box = Drawing.new("Square")
@@ -134,22 +136,27 @@ local function CreateESP(Player)
     Distance.Size = ESP.FontSize
     Distance.Outline = true
 
-    -- Chams ESP
+    -- Health Bar
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Visible = false
+    HealthBar.Color = Color3.new(0, 1, 0) -- Green by default
+    HealthBar.Thickness = 1
+    HealthBar.Filled = true
+
+    -- Health Percentage
+    local HealthPercentage = Drawing.new("Text")
+    HealthPercentage.Visible = false
+    HealthPercentage.Color = Color3.new(1, 1, 1) -- White
+    HealthPercentage.Size = ESP.FontSize
+    HealthPercentage.Outline = true
+
+    -- Chams
     local Chams = Instance.new("Highlight")
-    Chams.Parent = game.CoreGui
+    Chams.Parent = Character
     Chams.FillColor = ESP.Drawing.Chams.FillColor
     Chams.OutlineColor = ESP.Drawing.Chams.OutlineColor
-    Chams.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    Chams.Enabled = false
-
-    -- 3D Box Lines
-    local Lines = {}
-    for i = 1, 12 do
-        Lines[i] = Drawing.new("Line")
-        Lines[i].Visible = false
-        Lines[i].Color = ESP.Drawing.Boxes.Color
-        Lines[i].Thickness = 1
-    end
+    Chams.OutlineTransparency = ESP.Drawing.Chams.OutlineTransparency
+    Chams.Enabled = ESP.Drawing.Chams.Enabled
 
     -- Update ESP
     local RenderConnection
@@ -157,114 +164,95 @@ local function CreateESP(Player)
         if ESP.Enabled and Character and Character:FindFirstChild("HumanoidRootPart") then
             local RootPart = Character.HumanoidRootPart
             local Position, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
+            if not Position then
+                print("Position is nil for player:", Player)
+                return
+            end
             local DistanceFromPlayer = (Camera.CFrame.Position - RootPart.Position).Magnitude
 
             if OnScreen and DistanceFromPlayer <= ESP.MaxDistance then
-                -- Box ESP
-                if ESP.Drawing.Boxes.Enabled then
-                    if ESP.Drawing.Boxes.Style == "Dynamic" then
-                        -- Calculate bounding box
-                        local ScreenMin, ScreenMax = CalculateBoundingBox(Character)
-                        if ScreenMin and ScreenMax then
-                            Box.Size = Vector2.new(ScreenMax.X - ScreenMin.X, ScreenMax.Y - ScreenMin.Y)
-                            Box.Position = ScreenMin
-                            Box.Visible = true
-                            Box.Color = ESP.Drawing.Boxes.Color -- Update color in real-time
+                -- Calculate the bounding box based on the character's parts
+                local ScreenMin, ScreenMax = CalculateBoundingBox(Character)
+                if ScreenMin and ScreenMax then
+                    local BoxSize = ScreenMax - ScreenMin
+                    local BoxPosition = ScreenMin
+
+                    -- Box ESP
+                    if ESP.Drawing.Boxes.Enabled then
+                        Box.Size = BoxSize
+                        Box.Position = BoxPosition
+                        Box.Visible = true
+                    else
+                        Box.Visible = false
+                    end
+
+                    -- Name ESP (to the right of the box)
+                    if ESP.Drawing.Names.Enabled then
+                        Name.Position = Vector2.new(BoxPosition.X + BoxSize.X + 5, BoxPosition.Y)
+                        Name.Visible = true
+                    else
+                        Name.Visible = false
+                    end
+
+                    -- Distance ESP (below the name)
+                    if ESP.Drawing.Distances.Enabled then
+                        Distance.Position = Vector2.new(BoxPosition.X + BoxSize.X + 5, BoxPosition.Y + 15)
+                        Distance.Text = tostring(math.floor(DistanceFromPlayer)) .. " studs"
+                        Distance.Visible = true
+                    else
+                        Distance.Visible = false
+                    end
+
+                    -- Health Bar (to the left of the box)
+                    if ESP.HealthBarEnabled then
+                        local Humanoid = Character:FindFirstChild("Humanoid")
+                        if Humanoid and Humanoid.Health > 0 then
+                            local Health = Humanoid.Health
+                            local MaxHealth = Humanoid.MaxHealth
+                            local HealthRatio = Health / MaxHealth
+
+                            HealthBar.Size = Vector2.new(5, BoxSize.Y * HealthRatio) -- Width: 5, Height: Proportional to health
+                            HealthBar.Position = Vector2.new(BoxPosition.X - 10, BoxPosition.Y + BoxSize.Y - (BoxSize.Y * HealthRatio))
+                            HealthBar.Color = Color3.new(1 - HealthRatio, HealthRatio, 0) -- Red to Green gradient
+                            HealthBar.Visible = true
                         else
-                            Box.Visible = false
+                            HealthBar.Visible = false
                         end
-                        for _, Line in pairs(Lines) do
-                            Line.Visible = false -- Hide 3D box lines
-                        end
-                    elseif ESP.Drawing.Boxes.Style == "3D" then
-                        -- 3D Box (fixed size)
-                        local CF = RootPart.CFrame
-                        local Size = Vector3.new(4, 6, 2) -- Adjust size as needed
-
-                        local Corners = {
-                            CF * CFrame.new(-Size.X / 2, Size.Y / 2, -Size.Z / 2).Position,
-                            CF * CFrame.new(Size.X / 2, Size.Y / 2, -Size.Z / 2).Position,
-                            CF * CFrame.new(Size.X / 2, -Size.Y / 2, -Size.Z / 2).Position,
-                            CF * CFrame.new(-Size.X / 2, -Size.Y / 2, -Size.Z / 2).Position,
-                            CF * CFrame.new(-Size.X / 2, Size.Y / 2, Size.Z / 2).Position,
-                            CF * CFrame.new(Size.X / 2, Size.Y / 2, Size.Z / 2).Position,
-                            CF * CFrame.new(Size.X / 2, -Size.Y / 2, Size.Z / 2).Position,
-                            CF * CFrame.new(-Size.X / 2, -Size.Y / 2, Size.Z / 2).Position
-                        }
-
-                        local Indices = {
-                            {1, 2}, {2, 3}, {3, 4}, {4, 1},
-                            {5, 6}, {6, 7}, {7, 8}, {8, 5},
-                            {1, 5}, {2, 6}, {3, 7}, {4, 8}
-                        }
-
-                        for i, IndexPair in pairs(Indices) do
-                            local Start, End = Camera:WorldToViewportPoint(Corners[IndexPair[1]]), Camera:WorldToViewportPoint(Corners[IndexPair[2]])
-                            Lines[i].From = Vector2.new(Start.X, Start.Y)
-                            Lines[i].To = Vector2.new(End.X, End.Y)
-                            Lines[i].Color = ESP.Drawing.Boxes.Color -- Update color in real-time
-                            Lines[i].Visible = true
-                        end
-                        Box.Visible = false -- Hide dynamic box
+                    else
+                        HealthBar.Visible = false
                     end
-                else
-                    Box.Visible = false
-                    for _, Line in pairs(Lines) do
-                        Line.Visible = false
+
+                    -- Health Percentage (to the left of the box)
+                    if ESP.HealthPercentageEnabled then
+                        local Humanoid = Character:FindFirstChild("Humanoid")
+                        if Humanoid and Humanoid.Health > 0 then
+                            local Health = Humanoid.Health
+                            local MaxHealth = Humanoid.MaxHealth
+                            local HealthPercent = math.floor((Health / MaxHealth) * 100)
+
+                            HealthPercentage.Text = tostring(HealthPercent) .. "%"
+                            HealthPercentage.Position = Vector2.new(BoxPosition.X - 20, BoxPosition.Y)
+                            HealthPercentage.Visible = true
+                        else
+                            HealthPercentage.Visible = false
+                        end
+                    else
+                        HealthPercentage.Visible = false
                     end
-                end
-
-                -- Name ESP
-                if ESP.Drawing.Names.Enabled then
-                    local NameWidth = GetTextWidth(Player.Name, ESP.FontSize)
-                    Name.Position = Vector2.new(Position.X - NameWidth / 2, Position.Y - Box.Size.Y / 2 - 20) -- Centered above
-                    Name.Color = ESP.Drawing.Names.Color
-                    Name.Size = ESP.FontSize
-                    Name.Visible = true
-                else
-                    Name.Visible = false
-                end
-
-                -- Distance ESP
-                if ESP.Drawing.Distances.Enabled then
-                    local DistanceText = tostring(math.floor(DistanceFromPlayer)) .. " studs"
-                    local DistanceWidth = GetTextWidth(DistanceText, ESP.FontSize)
-                    Distance.Position = Vector2.new(Position.X - DistanceWidth / 2, Position.Y + Box.Size.Y / 2 + 10) -- Centered below
-                    Distance.Text = DistanceText
-                    Distance.Color = ESP.Drawing.Distances.Color
-                    Distance.Size = ESP.FontSize
-                    Distance.Visible = true
-                else
-                    Distance.Visible = false
-                end
-
-                -- Chams ESP
-                if ESP.Drawing.Chams.Enabled then
-                    Chams.Adornee = Character
-                    Chams.FillColor = ESP.Drawing.Chams.FillColor
-                    Chams.OutlineColor = ESP.Drawing.Chams.OutlineColor
-                    Chams.OutlineTransparency = ESP.Drawing.Chams.OutlineTransparency
-                    Chams.Enabled = true
-                else
-                    Chams.Enabled = false
                 end
             else
                 Box.Visible = false
                 Name.Visible = false
                 Distance.Visible = false
-                Chams.Enabled = false
-                for _, Line in pairs(Lines) do
-                    Line.Visible = false
-                end
+                HealthBar.Visible = false
+                HealthPercentage.Visible = false
             end
         else
             Box.Visible = false
             Name.Visible = false
             Distance.Visible = false
-            Chams.Enabled = false
-            for _, Line in pairs(Lines) do
-                Line.Visible = false
-            end
+            HealthBar.Visible = false
+            HealthPercentage.Visible = false
         end
     end)
 
@@ -273,10 +261,9 @@ local function CreateESP(Player)
         Box:Remove()
         Name:Remove()
         Distance:Remove()
+        HealthBar:Remove()
+        HealthPercentage:Remove()
         Chams:Destroy()
-        for _, Line in pairs(Lines) do
-            Line:Remove()
-        end
         RenderConnection:Disconnect()
     end)
 end
@@ -304,16 +291,33 @@ local function DestroyESP()
                     ESPData.Box:Remove()
                     ESPData.Name:Remove()
                     ESPData.Distance:Remove()
-                    ESPData.Chams:Destroy()
-                    for _, Line in pairs(ESPData.Lines) do
-                        Line:Remove()
-                    end
+                    ESPData.HealthBar:Remove()
+                    ESPData.HealthPercentage:Remove()
                 end
             end
         end
     end
 end
 
+-- Add Health Bar Toggle
+ESPSection:AddToggle({
+    Name = "Enable Health Bar",
+    Flag = "ESPSection_HealthBar",
+    Callback = function(Value)
+        ESP.HealthBarEnabled = Value
+    end
+})
+
+-- Add Health Percentage Toggle
+ESPSection:AddToggle({
+    Name = "Enable Health Percentage",
+    Flag = "ESPSection_HealthPercentage",
+    Callback = function(Value)
+        ESP.HealthPercentageEnabled = Value
+    end
+})
+
+-- Enable ESP Toggle
 ESPSection:AddToggle({
     Name = "Enable ESP",
     Flag = "ESPSection_EnableESP",
@@ -328,6 +332,19 @@ ESPSection:AddToggle({
     end
 })
 
+-- Add Chams Transparency Slider
+ESPSection:AddSlider({
+    Name = "Chams Transparency",
+    Flag = "ESPSection_ChamsTransparency",
+    Value = 1,
+    Min = 0,
+    Max = 1,
+    Callback = function(Value)
+        ESP.ChamsTransparency = Value
+    end
+})
+
+-- Team Check Toggle
 ESPSection:AddToggle({
     Name = "Team Check",
     Flag = "ESPSection_TeamCheck",
@@ -336,6 +353,7 @@ ESPSection:AddToggle({
     end
 })
 
+-- Max Distance Slider
 ESPSection:AddSlider({
     Name = "Max Distance",
     Flag = "ESPSection_MaxDistance",
@@ -347,6 +365,7 @@ ESPSection:AddSlider({
     end
 })
 
+-- Font Size Slider
 ESPSection:AddSlider({
     Name = "Font Size",
     Flag = "ESPSection_FontSize",
