@@ -137,20 +137,6 @@ local function CreateESP(Player)
     Distance.Size = ESP.FontSize
     Distance.Outline = true
 
-    -- Health Bar
-    local HealthBar = Drawing.new("Square")
-    HealthBar.Visible = false
-    HealthBar.Color = Color3.new(0, 1, 0) -- Green by default
-    HealthBar.Thickness = 1
-    HealthBar.Filled = true
-
-    -- Health Bar Outline
-    local HealthBarOutline = Drawing.new("Square")
-    HealthBarOutline.Visible = false
-    HealthBarOutline.Color = Color3.new(0, 0, 0) -- Black outline
-    HealthBarOutline.Thickness = 2
-    HealthBarOutline.Filled = false
-
     -- Health Percentage
     local HealthPercentage = Drawing.new("Text")
     HealthPercentage.Visible = false
@@ -179,6 +165,21 @@ local function CreateESP(Player)
             Chams.Enabled = false
         end
     end
+
+    -- Update ESP
+    -- Health Bar
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Visible = false
+    HealthBar.Color = Color3.new(0, 1, 0) -- Green by default
+    HealthBar.Thickness = 1
+    HealthBar.Filled = true
+
+    -- Health Bar Outline
+    local HealthBarOutline = Drawing.new("Square")
+    HealthBarOutline.Visible = false
+    HealthBarOutline.Color = Color3.new(0, 0, 0) -- Black outline
+    HealthBarOutline.Thickness = 1               -- Thinner outline
+    HealthBarOutline.Filled = false
 
     -- Update ESP
     local RenderConnection
@@ -240,7 +241,6 @@ local function CreateESP(Player)
                         Distance.Visible = false
                     end
 
-                    -- Health Bar (to the left of the box)
                     -- Health Bar (to the left of the box)
                     if ESP.HealthBarEnabled then
                         local Humanoid = Character:FindFirstChild("Humanoid")
