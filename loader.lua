@@ -53,7 +53,7 @@ elseif UniverseID == 1234 then
     print("WIP - Universe Match")
     scriptToLoad = "universe_match"
 else
-    print("WIP - No Match")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/universal.lua"))()
     scriptToLoad = "no_match"
 end
 

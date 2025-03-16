@@ -57,7 +57,7 @@ local ESP = {
         Boxes = { Enabled = false, Color = Color3.fromRGB(255, 255, 255), Style = "Dynamic" }, -- Default to Dynamic
         Names = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) },
         Distances = { Enabled = false, Color = Color3.fromRGB(255, 255, 255) },
-        Chams = { Enabled = false, FillColor = Color3.fromRGB(119, 120, 255), OutlineColor = Color3.fromRGB(119, 120, 255), OutlineTransparency = 1 } -- Outline off by default
+        Chams = { Enabled = false, FillColor = Color3.fromRGB(119, 120, 255), FillTransparency = 0.5, OutlineColor = Color3.fromRGB(119, 120, 255), OutlineTransparency = 1 } -- Outline off by default
     }
 }
 
@@ -65,6 +65,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = game.Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
+
 -- Function to calculate the 2D bounding box of a player's character
 local function CalculateBoundingBox(Character)
     local RootPart = Character:FindFirstChild("HumanoidRootPart")
@@ -118,7 +119,7 @@ local function CreateESP(Player)
     local Box = Drawing.new("Square")
     Box.Visible = false
     Box.Color = ESP.Drawing.Boxes.Color
-    Box.Thickness = 1 -- Thin lines
+    Box.Thickness = 1  -- Thin lines
     Box.Filled = false -- Not filled (hollow)
 
     -- Name ESP
@@ -143,6 +144,13 @@ local function CreateESP(Player)
     HealthBar.Thickness = 1
     HealthBar.Filled = true
 
+    -- Health Bar Outline
+    local HealthBarOutline = Drawing.new("Square")
+    HealthBarOutline.Visible = false
+    HealthBarOutline.Color = Color3.new(0, 0, 0) -- Black outline
+    HealthBarOutline.Thickness = 2
+    HealthBarOutline.Filled = false
+
     -- Health Percentage
     local HealthPercentage = Drawing.new("Text")
     HealthPercentage.Visible = false
@@ -155,13 +163,42 @@ local function CreateESP(Player)
     Chams.Parent = Character
     Chams.FillColor = ESP.Drawing.Chams.FillColor
     Chams.OutlineColor = ESP.Drawing.Chams.OutlineColor
+    Chams.FillTransparency = ESP.Drawing.Chams.FillTransparency
     Chams.OutlineTransparency = ESP.Drawing.Chams.OutlineTransparency
     Chams.Enabled = ESP.Drawing.Chams.Enabled
+
+    -- Function to update Chams in real-time
+    local function UpdateChams()
+        if ESP.Drawing.Chams.Enabled then
+            Chams.FillColor = ESP.Drawing.Chams.FillColor
+            Chams.OutlineColor = ESP.Drawing.Chams.OutlineColor
+            Chams.FillTransparency = ESP.Drawing.Chams.FillTransparency
+            Chams.OutlineTransparency = ESP.Drawing.Chams.OutlineTransparency
+            Chams.Enabled = true
+        else
+            Chams.Enabled = false
+        end
+    end
 
     -- Update ESP
     local RenderConnection
     RenderConnection = RunService.RenderStepped:Connect(function()
         if ESP.Enabled and Character and Character:FindFirstChild("HumanoidRootPart") then
+            -- Update Chams in real-time
+            UpdateChams()
+
+            -- Update font size for text elements
+            Name.Size = ESP.FontSize
+            Distance.Size = ESP.FontSize
+            HealthPercentage.Size = ESP.FontSize
+
+            -- Update box color in real-time
+            Box.Color = ESP.Drawing.Boxes.Color
+
+            -- Update name and distance color in real-time
+            Name.Color = ESP.Drawing.Names.Color
+            Distance.Color = ESP.Drawing.Distances.Color
+
             local RootPart = Character.HumanoidRootPart
             local Position, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
             if not Position then
@@ -204,6 +241,7 @@ local function CreateESP(Player)
                     end
 
                     -- Health Bar (to the left of the box)
+                    -- Health Bar (to the left of the box)
                     if ESP.HealthBarEnabled then
                         local Humanoid = Character:FindFirstChild("Humanoid")
                         if Humanoid and Humanoid.Health > 0 then
@@ -211,15 +249,26 @@ local function CreateESP(Player)
                             local MaxHealth = Humanoid.MaxHealth
                             local HealthRatio = Health / MaxHealth
 
-                            HealthBar.Size = Vector2.new(5, BoxSize.Y * HealthRatio) -- Width: 5, Height: Proportional to health
-                            HealthBar.Position = Vector2.new(BoxPosition.X - 10, BoxPosition.Y + BoxSize.Y - (BoxSize.Y * HealthRatio))
+                            -- Health Bar
+                            HealthBar.Size = Vector2.new(2.5, BoxSize.Y * HealthRatio) -- Width: 2.5 (half of original), Height: Proportional to health
+                            HealthBar.Position = Vector2.new(BoxPosition.X - 10,
+                                BoxPosition.Y + BoxSize.Y - (BoxSize.Y * HealthRatio))
                             HealthBar.Color = Color3.new(1 - HealthRatio, HealthRatio, 0) -- Red to Green gradient
                             HealthBar.Visible = true
+
+                            -- Health Bar Outline
+                            HealthBarOutline.Size = Vector2.new(2.5, BoxSize.Y) -- Width: 2.5 (half of original), Height: Full height
+                            HealthBarOutline.Position = Vector2.new(BoxPosition.X - 10,
+                                BoxPosition.Y + BoxSize.Y - BoxSize.Y)
+                            HealthBarOutline.Thickness = 1  -- Thinner outline
+                            HealthBarOutline.Visible = true
                         else
                             HealthBar.Visible = false
+                            HealthBarOutline.Visible = false
                         end
                     else
                         HealthBar.Visible = false
+                        HealthBarOutline.Visible = false
                     end
 
                     -- Health Percentage (to the left of the box)
@@ -245,14 +294,18 @@ local function CreateESP(Player)
                 Name.Visible = false
                 Distance.Visible = false
                 HealthBar.Visible = false
+                HealthBarOutline.Visible = false
                 HealthPercentage.Visible = false
+                Chams.Enabled = false
             end
         else
             Box.Visible = false
             Name.Visible = false
             Distance.Visible = false
             HealthBar.Visible = false
+            HealthBarOutline.Visible = false
             HealthPercentage.Visible = false
+            Chams.Enabled = false
         end
     end)
 
@@ -262,6 +315,7 @@ local function CreateESP(Player)
         Name:Remove()
         Distance:Remove()
         HealthBar:Remove()
+        HealthBarOutline:Remove()
         HealthPercentage:Remove()
         Chams:Destroy()
         RenderConnection:Disconnect()
@@ -288,34 +342,14 @@ local function DestroyESP()
             if Character and Character:FindFirstChild("HumanoidRootPart") then
                 local ESPData = Character:FindFirstChild("ESPData")
                 if ESPData then
-                    ESPData.Box:Remove()
-                    ESPData.Name:Remove()
-                    ESPData.Distance:Remove()
                     ESPData.HealthBar:Remove()
+                    ESPData.HealthBarOutline:Remove()
                     ESPData.HealthPercentage:Remove()
                 end
             end
         end
     end
 end
-
--- Add Health Bar Toggle
-ESPSection:AddToggle({
-    Name = "Enable Health Bar",
-    Flag = "ESPSection_HealthBar",
-    Callback = function(Value)
-        ESP.HealthBarEnabled = Value
-    end
-})
-
--- Add Health Percentage Toggle
-ESPSection:AddToggle({
-    Name = "Enable Health Percentage",
-    Flag = "ESPSection_HealthPercentage",
-    Callback = function(Value)
-        ESP.HealthPercentageEnabled = Value
-    end
-})
 
 -- Enable ESP Toggle
 ESPSection:AddToggle({
@@ -329,18 +363,6 @@ ESPSection:AddToggle({
         else
             DestroyESP()
         end
-    end
-})
-
--- Add Chams Transparency Slider
-ESPSection:AddSlider({
-    Name = "Chams Transparency",
-    Flag = "ESPSection_ChamsTransparency",
-    Value = 1,
-    Min = 0,
-    Max = 1,
-    Callback = function(Value)
-        ESP.ChamsTransparency = Value
     end
 })
 
@@ -365,96 +387,30 @@ ESPSection:AddSlider({
     end
 })
 
--- Font Size Slider
-ESPSection:AddSlider({
-    Name = "Font Size",
-    Flag = "ESPSection_FontSize",
-    Value = 11,
-    Min = 8,
-    Max = 20,
+-- Health Settings Section
+local HealthSection = ESPTab:CreateSection({
+    Name = "Health Settings"
+})
+
+-- Add Health Bar Toggle
+HealthSection:AddToggle({
+    Name = "Enable Health Bar",
+    Flag = "HealthSection_HealthBar",
     Callback = function(Value)
-        ESP.FontSize = Value
+        ESP.HealthBarEnabled = Value
     end
 })
 
--- Boxes Settings
-local BoxesSection = ESPTab:CreateSection({
-    Name = "Boxes Settings"
-})
-
-BoxesSection:AddToggle({
-    Name = "Enable Boxes",
-    Flag = "BoxesSection_EnableBoxes",
+-- Add Health Percentage Toggle
+HealthSection:AddToggle({
+    Name = "Enable Health Percentage",
+    Flag = "HealthSection_HealthPercentage",
     Callback = function(Value)
-        ESP.Drawing.Boxes.Enabled = Value
+        ESP.HealthPercentageEnabled = Value
     end
 })
 
-BoxesSection:AddColorPicker({
-    Name = "Box Color",
-    Flag = "BoxesSection_BoxColor",
-    Color = Color3.fromRGB(255, 255, 255), -- White
-    Callback = function(Value)
-        ESP.Drawing.Boxes.Color = Value
-    end
-})
-
--- Add Dropdown for Box Styles
-BoxesSection:AddDropdown({
-    Name = "Box Style",
-    Flag = "BoxesSection_BoxStyle",
-    Default = "Dynamic",
-    List = {"Dynamic", "3D"},
-    Callback = function(Value)
-        ESP.Drawing.Boxes.Style = Value
-    end
-})
-
--- Names Settings
-local NamesSection = ESPTab:CreateSection({
-    Name = "Names Settings"
-})
-
-NamesSection:AddToggle({
-    Name = "Enable Names",
-    Flag = "NamesSection_EnableNames",
-    Callback = function(Value)
-        ESP.Drawing.Names.Enabled = Value
-    end
-})
-
-NamesSection:AddColorPicker({
-    Name = "Name Color",
-    Flag = "NamesSection_NameColor",
-    Color = Color3.fromRGB(255, 255, 255), -- White
-    Callback = function(Value)
-        ESP.Drawing.Names.Color = Value
-    end
-})
-
--- Distances Settings
-local DistancesSection = ESPTab:CreateSection({
-    Name = "Distances Settings"
-})
-
-DistancesSection:AddToggle({
-    Name = "Enable Distances",
-    Flag = "DistancesSection_EnableDistances",
-    Callback = function(Value)
-        ESP.Drawing.Distances.Enabled = Value
-    end
-})
-
-DistancesSection:AddColorPicker({
-    Name = "Distance Color",
-    Flag = "DistancesSection_DistanceColor",
-    Color = Color3.fromRGB(255, 255, 255), -- White
-    Callback = function(Value)
-        ESP.Drawing.Distances.Color = Value
-    end
-})
-
--- Chams Settings
+-- Chams Settings Section
 local ChamsSection = ESPTab:CreateSection({
     Name = "Chams Settings"
 })
@@ -485,11 +441,112 @@ ChamsSection:AddColorPicker({
     end
 })
 
+-- Chams Fill Opacity Slider
+ChamsSection:AddSlider({
+    Name = "Chams Fill Opacity",
+    Flag = "ChamsSection_FillOpacity",
+    Value = 0.5,
+    Min = 0,
+    Max = 1,
+    Callback = function(Value)
+        ESP.Drawing.Chams.FillTransparency = 1 - Value
+    end
+})
+
 -- Chams Outline Toggle
 ChamsSection:AddToggle({
     Name = "Toggle Chams Outline",
     Flag = "ChamsSection_ToggleOutline",
     Callback = function(Value)
         ESP.Drawing.Chams.OutlineTransparency = Value and 0 or 1
+    end
+})
+
+-- Box, Names, and Distances Settings Section
+local BoxNamesDistancesSection = ESPTab:CreateSection({
+    Name = "Box, Names, and Distances Settings"
+})
+
+BoxNamesDistancesSection:AddToggle({
+    Name = "Enable Boxes",
+    Flag = "BoxNamesDistancesSection_EnableBoxes",
+    Callback = function(Value)
+        ESP.Drawing.Boxes.Enabled = Value
+    end
+})
+
+BoxNamesDistancesSection:AddColorPicker({
+    Name = "Box Color",
+    Flag = "BoxNamesDistancesSection_BoxColor",
+    Color = Color3.fromRGB(255, 255, 255), -- White
+    Callback = function(Value)
+        ESP.Drawing.Boxes.Color = Value
+    end
+})
+
+BoxNamesDistancesSection:AddToggle({
+    Name = "Enable Names",
+    Flag = "BoxNamesDistancesSection_EnableNames",
+    Callback = function(Value)
+        ESP.Drawing.Names.Enabled = Value
+    end
+})
+
+BoxNamesDistancesSection:AddColorPicker({
+    Name = "Name Color",
+    Flag = "BoxNamesDistancesSection_NameColor",
+    Color = Color3.fromRGB(255, 255, 255), -- White
+    Callback = function(Value)
+        ESP.Drawing.Names.Color = Value
+    end
+})
+
+BoxNamesDistancesSection:AddToggle({
+    Name = "Enable Distances",
+    Flag = "BoxNamesDistancesSection_EnableDistances",
+    Callback = function(Value)
+        ESP.Drawing.Distances.Enabled = Value
+    end
+})
+
+BoxNamesDistancesSection:AddColorPicker({
+    Name = "Distance Color",
+    Flag = "BoxNamesDistancesSection_DistanceColor",
+    Color = Color3.fromRGB(255, 255, 255), -- White
+    Callback = function(Value)
+        ESP.Drawing.Distances.Color = Value
+    end
+})
+
+-- Font Size Slider
+local FontSizeSection = ESPTab:CreateSection({
+    Name = "Font Size Settings"
+})
+
+FontSizeSection:AddSlider({
+    Name = "Font Size",
+    Flag = "FontSizeSection_FontSize",
+    Value = 11,
+    Min = 8,
+    Max = 20,
+    Callback = function(Value)
+        ESP.FontSize = Value
+        -- Update font size for all ESP text elements
+        for _, Player in pairs(Players:GetPlayers()) do
+            if Player ~= LocalPlayer and Player.Character then
+                local ESPData = Player.Character:FindFirstChild("ESPData")
+                if ESPData then
+                    if ESPData.Name then
+                        ESPData.Name.Size = Value
+                    end
+                    if ESPData.Distance then
+                        ESPData.Distance.Size = Value
+                    end
+                    if ESPData.HealthPercentage then
+                        ESPData.HealthPercentage.Size = Value
+                    end
+                end
+            end
+        end
     end
 })
