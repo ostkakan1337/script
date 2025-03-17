@@ -2,7 +2,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostka
 local UserInputService = game:GetService("UserInputService")
 shared.force_designer = true
 local PepsisWorld = library:CreateWindow({
-    Name = "DaHub | Fisch",
+    Name = "Lunarity | Universal",
     Themeable = {
         Info = "by sparvish"
     }
@@ -21,7 +21,7 @@ local InformationSection = GeneralTab:CreateSection({
 InformationSection:AddButton({
     Name = "Join Discord",
     Callback = function()
-        setclipboard("https://discord.gg/yourserver")
+        setclipboard("https://discord.gg/dT8Db3wV")
         library:Notify({
             Title = "Discord",
             Text = "Discord invite copied to clipboard!",
