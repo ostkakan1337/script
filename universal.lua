@@ -1,5 +1,8 @@
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
+local library = loadstring(game:HttpGet(
+"https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/libs/ui.lua"))()
+local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/libs/universalmodule.lua"))()
 local UserInputService = game:GetService("UserInputService")
+
 shared.force_designer = true
 local PepsisWorld = library:CreateWindow({
     Name = "Lunarity | Universal",
@@ -15,6 +18,10 @@ local GeneralTab = PepsisWorld:CreateTab({
 
 local InformationSection = GeneralTab:CreateSection({
     Name = "Information"
+})
+
+local EtcMain = GeneralTab:CreateSection({
+    Name = "Etc"
 })
 
 InformationSection:AddButton({
@@ -34,6 +41,21 @@ InformationSection:AddButton({
                 Duration = 3,
                 Type = "Success"
             })
+        end
+    }
+})
+
+EtcMain:AddButton({
+    {
+        Name = "Rejoin Server",
+        Callback = function()
+            Utils:rejoinServer()
+        end
+    },
+    {
+        Name = "Server Hop",
+        Callback = function()
+            Utils:hopServer()
         end
     }
 })
@@ -421,7 +443,7 @@ local function CreateESP(Player)
                             --// Bottom Right Corner
                             Corners[7].From = Vector2.new(BoxPosition.X + BoxSize.X, BoxPosition.Y + BoxSize.Y)
                             Corners[7].To = Vector2.new(BoxPosition.X + BoxSize.X - cornerSize, BoxPosition.Y + BoxSize
-                            .Y)
+                                .Y)
                             Corners[8].From = Vector2.new(BoxPosition.X + BoxSize.X, BoxPosition.Y + BoxSize.Y)
                             Corners[8].To = Vector2.new(BoxPosition.X + BoxSize.X, BoxPosition.Y + BoxSize.Y - cornerSize)
 
@@ -876,13 +898,180 @@ FontSizeSection:AddSlider({
     end
 })
 
--- Movement Tab
-local MovementTab = PepsisWorld:CreateTab({
-    Name = "Movement"
+-- Character Tab
+local CharacterTab = PepsisWorld:CreateTab({
+    Name = "Character"
+})
+
+-- FOV Changer Section
+local FOVSection = CharacterTab:CreateSection({
+    Name = "FOV Changer"
+})
+
+local FOVValue = 70 -- Default FOV
+FOVSection:AddSlider({
+    Name = "FOV",
+    Flag = "FOVSection_FOV",
+    Value = 70,
+    Min = 50,
+    Max = 120,
+    Textbox = true,
+    Callback = function(Value)
+        FOVValue = Value
+        game.Workspace.CurrentCamera.FieldOfView = FOVValue
+    end
+})
+
+-- Crosshair Section
+local CrosshairSection = CharacterTab:CreateSection({
+    Name = "Crosshair"
+})
+
+local CrosshairDot = Drawing.new("Circle")
+CrosshairDot.Visible = false
+CrosshairDot.Color = Color3.new(1, 1, 1) -- White by default
+CrosshairDot.Radius = 5 -- Default size
+CrosshairDot.Thickness = 1
+CrosshairDot.Filled = true
+CrosshairDot.Position = Vector2.new(game.Workspace.CurrentCamera.ViewportSize.X / 2, game.Workspace.CurrentCamera.ViewportSize.Y / 2)
+
+CrosshairSection:AddToggle({
+    Name = "Enable Crosshair",
+    Flag = "CrosshairSection_EnableCrosshair",
+    Callback = function(Value)
+        CrosshairDot.Visible = Value
+    end
+})
+
+CrosshairSection:AddSlider({
+    Name = "Crosshair Size",
+    Flag = "CrosshairSection_Size",
+    Value = 5,
+    Min = 1,
+    Max = 20,
+    Textbox = true,
+    Callback = function(Value)
+        CrosshairDot.Radius = Value
+    end
+})
+
+CrosshairSection:AddColorPicker({
+    Name = "Crosshair Color",
+    Flag = "CrosshairSection_Color",
+    Color = Color3.new(1, 1, 1), -- White
+    Callback = function(Value)
+        CrosshairDot.Color = Value
+    end
+})
+
+-- Force Third Person Section
+local ThirdPersonSection = CharacterTab:CreateSection({
+    Name = "Force Third Person"
+})
+
+ThirdPersonSection:AddToggle({
+    Name = "Force Third Person",
+    Flag = "ThirdPersonSection_ForceThirdPerson",
+    Callback = function(Value)
+        if Value then
+            game.Workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+            game.Workspace.CurrentCamera.CFrame = game.Workspace.CurrentCamera.CFrame * CFrame.new(0, 0, -10)
+        else
+            game.Workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        end
+    end
+})
+
+-- World Tab
+-- World Tab
+local WorldTab = PepsisWorld:CreateTab({
+    Name = "World"
+})
+
+-- Time of Day Section
+local TimeSection = WorldTab:CreateSection({
+    Name = "Time of Day"
+})
+
+local TimeValue = 12 -- Default time (noon)
+TimeSection:AddSlider({
+    Name = "Time of Day",
+    Flag = "TimeSection_Time",
+    Value = 12,
+    Min = 0,
+    Max = 24,
+    Textbox = true,
+    Callback = function(Value)
+        TimeValue = Value
+        game.Lighting.ClockTime = TimeValue
+    end
+})
+
+-- Post Processing Section
+local PostProcessingSection = WorldTab:CreateSection({
+    Name = "Post Processing"
+})
+
+PostProcessingSection:AddToggle({
+    Name = "Remove All Post Processing",
+    Flag = "PostProcessingSection_RemovePostProcessing",
+    Callback = function(Value)
+        if Value then
+            -- Remove all post-processing effects
+            for _, effect in pairs(game.Lighting:GetChildren()) do
+                if effect:IsA("PostEffect") then
+                    effect:Destroy()
+                end
+            end
+        end
+    end
+})
+
+-- Ambient Color Section
+local AmbientColorSection = WorldTab:CreateSection({
+    Name = "Ambient Color"
+})
+
+print("Ambient Color Section Created") -- Debugging line
+
+local AmbientColor = Color3.new(1, 1, 1) -- Default white
+local AmbientOpacity = 0.1 -- Default opacity
+
+AmbientColorSection:AddColorPicker({
+    Name = "Ambient Color",
+    Flag = "AmbientColorSection_Color",
+    Color = AmbientColor,
+    Callback = function(Value)
+        AmbientColor = Value
+        -- Update ambient color with opacity
+        game.Lighting.Ambient = Color3.new(
+            AmbientColor.R * AmbientOpacity,
+            AmbientColor.G * AmbientOpacity,
+            AmbientColor.B * AmbientOpacity
+        )
+    end
+})
+
+AmbientColorSection:AddSlider({
+    Name = "Ambient Opacity",
+    Flag = "AmbientColorSection_Opacity",
+    Value = 1,
+    Min = 0,
+    Max = 1,
+    Textbox = true,
+    Callback = function(Value)
+        AmbientOpacity = Value
+        -- Update ambient color with opacity
+        game.Lighting.Ambient = Color3.new(
+            AmbientColor.R * AmbientOpacity,
+            AmbientColor.G * AmbientOpacity,
+            AmbientColor.B * AmbientOpacity
+        )
+    end
 })
 
 -- Movement Settings Section
-local MovementSection = MovementTab:CreateSection({
+local MovementSection = CharacterTab:CreateSection({
     Name = "Movement Settings"
 })
 
@@ -932,8 +1121,9 @@ LocalPlayer.CharacterAdded:Connect(function(Character)
 end)
 
 -- No Clip and Fly Section
-local NoClipFlySection = MovementTab:CreateSection({
-    Name = "No Clip and Fly"
+local NoClipFlySection = CharacterTab:CreateSection({
+    Name = "No Clip and Fly",
+    Side = "Right"
 })
 
 NoClipFlySection:AddLabel({
@@ -1077,3 +1267,129 @@ NoClipFlySection:AddSlider({
         FlySpeed = Value
     end
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- Keybind list (Needs to be at the bottom)
+
+task.spawn(function(Library, Window)
+    if Library then else
+        Library = shared.libraries[1]
+        if Library then else
+            return warn("Could not find library! Please pass the library as argument #1")
+        end
+    end
+
+    if Window then else
+        for k, v in next, Library.globals do
+            if v and v.windowFunctions then
+                Window = v.windowFunctions
+                break
+            end
+        end
+        if Window then else
+            return warn("Could not find window! Please pass the window as argument #2")
+        end
+    end
+
+    local KeybindsTab = Window:CreateTab({
+        Name = "Keybinds"
+    })
+
+    local KeybindsSectionL = KeybindsTab:CreateSection({
+        Name = "Keybinds",
+        Side = "left"
+    })
+
+    local KeybindsSectionR = KeybindsTab:CreateSection({
+        Name = "Keybinds",
+        Side = "right"
+    })
+
+    local MayUpdate = true
+
+    local function Sort1Lower(A, B)
+        return A[1]:lower() < B[1]:lower()
+    end
+
+    local function GetAllBinds()
+        local Keybinds = {}
+        for Name, Element in next, Library.elements do
+            if Element and (Element.Type == "Keybind") and (Element.IsKeybindHook == nil) and (Element.Flag ~= "__Designer.Settings.ShowHideKey") then
+                Element.OriginalCallback = Element.OriginalCallback or Element.Callback
+                Keybinds[1 + #Keybinds] = { Name, Element }
+            end
+        end
+        table.sort(Keybinds, Sort1Lower)
+        return Keybinds
+    end
+
+    local function ClearAllBinds()
+        for _, Element in next, Library.elements do
+            if Element and Element.IsKeybindHook and (Element.Type == "Keybind") then
+                Element:Remove()
+            end
+        end
+    end
+
+    local function PopulateBinds()
+        MayUpdate = nil
+        local Keybinds = GetAllBinds()
+        ClearAllBinds()
+        local Side = 0
+        for _, Data in next, Keybinds do
+            local Name, Keybind = Data[1], Data[2]
+            local Desc
+            if Keybind.ToggleData then
+                Desc = Keybind.ToggleData.Options.Name
+            else
+                Desc = Keybind.Options.Name
+            end
+            Side = 1 + (Side % 2)
+            local KeybindsSection = ((Side == 1) and KeybindsSectionL) or KeybindsSectionR
+            local Bind
+            Bind = KeybindsSection:AddKeybind({
+                Name = Desc,
+                Value = Keybind:Get(),
+                Callback = function(Key)
+                    if MayUpdate then
+                        Keybind:Set(Key)
+                        Bind:Set(Key)
+                    end
+                end
+            })
+            function Keybind.Callback(...)
+                local Key = ...
+                pcall(Bind.Set, Bind, Key)
+                if Keybind.OriginalCallback then
+                    return Keybind.OriginalCallback(...)
+                end
+            end
+
+            Bind.IsKeybindHook = true
+        end
+        MayUpdate = true
+    end
+
+    PopulateBinds()
+    while Library.Wait(10) do
+        PopulateBinds()
+    end
+end)

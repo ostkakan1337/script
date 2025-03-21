@@ -1,4 +1,4 @@
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/ui.lua"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ostkakan1337/script/refs/heads/main/libs/ui.lua"))()
 local UserInputService = game:GetService("UserInputService")
 shared.force_designer = true
 local PepsisWorld = library:CreateWindow({
