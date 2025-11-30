@@ -1123,7 +1123,7 @@ MovementSection:AddSlider({
 })
 
 -- Automatically update walkspeed and jumppower when the player's character changes
-LocalPlayer.CharacterAdded:Connect(function(Character)
+local MovementCharacterAddedConnection = LocalPlayer.CharacterAdded:Connect(function(Character)
     local Humanoid = Character:WaitForChild("Humanoid")
     Humanoid.WalkSpeed = MovementSpeed
     Humanoid.JumpPower = JumpPower
@@ -1186,7 +1186,7 @@ NoClipFlySection:AddToggle({
 })
 
 -- Maintain noclip on character respawn
-LocalPlayer.CharacterAdded:Connect(function(Character)
+local CharacterAddedConnection = LocalPlayer.CharacterAdded:Connect(function(Character)
     if NoClipEnabled then
         -- Wait a bit for character to fully load
         task.wait(0.1)
@@ -1209,6 +1209,7 @@ end)
 local FlyEnabled = false
 local FlySpeed = 50          -- Default fly speed
 local BodyGyro, BodyVelocity -- Declare BodyGyro and BodyVelocity outside the toggle callback
+local FlyConnection = nil    -- Declare FlyConnection outside the toggle callback
 
 NoClipFlySection:AddToggle({
     Name = "Enable Fly",
@@ -1237,7 +1238,9 @@ NoClipFlySection:AddToggle({
                 LocalPlayer.Character.Humanoid.PlatformStand = true
 
                 -- Fly logic
-                local FlyConnection
+                if FlyConnection then
+                    FlyConnection:Disconnect()
+                end
                 FlyConnection = RunService.Stepped:Connect(function()
                     if FlyEnabled and LocalPlayer.Character and LocalPlayer.Character.PrimaryPart then
                         local Camera = workspace.CurrentCamera
@@ -1282,11 +1285,17 @@ NoClipFlySection:AddToggle({
             end
         else
             -- Disable Fly
+            if FlyConnection then
+                FlyConnection:Disconnect()
+                FlyConnection = nil
+            end
             if BodyGyro then
                 BodyGyro:Destroy()
+                BodyGyro = nil
             end
             if BodyVelocity then
                 BodyVelocity:Destroy()
+                BodyVelocity = nil
             end
             if LocalPlayer.Character and LocalPlayer.Character.Humanoid then
                 LocalPlayer.Character.Humanoid.PlatformStand = false
@@ -1433,3 +1442,75 @@ task.spawn(function(Library, Window)
         PopulateBinds()
     end
 end)
+
+-- Unload callback to disable all features
+library.UnloadCallback = function()
+    -- Disable NoClip
+    if NoClipConnection then
+        NoClipConnection:Disconnect()
+        NoClipConnection = nil
+    end
+    if CharacterAddedConnection then
+        CharacterAddedConnection:Disconnect()
+        CharacterAddedConnection = nil
+    end
+    if MovementCharacterAddedConnection then
+        MovementCharacterAddedConnection:Disconnect()
+        MovementCharacterAddedConnection = nil
+    end
+    if LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+    
+    -- Disable Fly
+    if FlyConnection then
+        FlyConnection:Disconnect()
+        FlyConnection = nil
+    end
+    if BodyGyro then
+        BodyGyro:Destroy()
+        BodyGyro = nil
+    end
+    if BodyVelocity then
+        BodyVelocity:Destroy()
+        BodyVelocity = nil
+    end
+    if LocalPlayer.Character and LocalPlayer.Character.Humanoid then
+        LocalPlayer.Character.Humanoid.PlatformStand = false
+    end
+    
+    -- Disable ESP
+    DestroyESP()
+    
+    -- Reset Movement Speed and Jump Power
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16 -- Default walkspeed
+        LocalPlayer.Character.Humanoid.JumpPower = 50 -- Default jumppower
+    end
+    
+    -- Hide Crosshair
+    if CrosshairDot then
+        CrosshairDot.Visible = false
+        CrosshairDot:Remove()
+    end
+    
+    -- Reset FOV
+    if game.Workspace.CurrentCamera then
+        game.Workspace.CurrentCamera.FieldOfView = 70 -- Default FOV
+    end
+    
+    -- Reset Third Person
+    if game.Workspace.CurrentCamera then
+        game.Workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+    end
+    
+    -- Reset Time of Day (optional - you might want to leave this)
+    -- game.Lighting.ClockTime = 12
+    
+    -- Reset Ambient Color (optional - you might want to leave this)
+    -- game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+end
