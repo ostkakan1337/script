@@ -167,6 +167,13 @@ local function CreateESP(Player)
     BoxOutlineOuter.Thickness = 1
     BoxOutlineOuter.Filled = false
 
+    --// Box Outline Inner
+    local BoxOutlineInner = Drawing.new("Square")
+    BoxOutlineInner.Visible = false
+    BoxOutlineInner.Color = Color3.new(0, 0, 0)
+    BoxOutlineInner.Thickness = 1
+    BoxOutlineInner.Filled = false
+
     --// Corner Boxes
     local Corners = {}
     for i = 1, 8 do
@@ -317,7 +324,7 @@ local function CreateESP(Player)
                             --// updates to the box
                             Box.Size = BoxSize
                             Box.Position = BoxPosition
-                            Box.Color = ESP.Drawing.Boxes.Color -- Ensure color is updated
+                            Box.Color = ESP.Drawing.Boxes.Color -- Ensure color is updated when visible
                             Box.Visible = true
 
                             -- Hide corner boxes
@@ -449,7 +456,7 @@ local function CreateESP(Player)
 
                             -- Update colors and make all corners visible
                             for i = 1, 8 do
-                                Corners[i].Color = ESP.Drawing.Boxes.Color -- Use the selected color
+                                Corners[i].Color = ESP.Drawing.Boxes.Color -- Use the selected color when visible
                                 Corners[i].Visible = true
                             end
                         end
@@ -468,6 +475,7 @@ local function CreateESP(Player)
                     -- Name ESP (to the right of the box)
                     if ESP.Drawing.Names.Enabled then
                         Name.Position = Vector2.new(BoxPosition.X + BoxSize.X + 5, BoxPosition.Y)
+                        Name.Color = ESP.Drawing.Names.Color -- Ensure color is set when visible
                         Name.Visible = true
                     else
                         Name.Visible = false
@@ -477,6 +485,7 @@ local function CreateESP(Player)
                     if ESP.Drawing.Distances.Enabled then
                         Distance.Position = Vector2.new(BoxPosition.X + BoxSize.X + 5, BoxPosition.Y + 15)
                         Distance.Text = tostring(math.floor(DistanceFromPlayer)) .. " studs"
+                        Distance.Color = ESP.Drawing.Distances.Color -- Ensure color is set when visible
                         Distance.Visible = true
                     else
                         Distance.Visible = false
@@ -1137,6 +1146,8 @@ NoClipFlySection:AddLabel({
 })
 -- No Clip Toggle
 local NoClipEnabled = false
+local NoClipConnection = nil
+
 NoClipFlySection:AddToggle({
     Name = "Enable No Clip",
     Flag = "NoClipFlySection_NoClip",
@@ -1144,16 +1155,25 @@ NoClipFlySection:AddToggle({
     Callback = function(Value)
         NoClipEnabled = Value
         if NoClipEnabled then
-            -- Enable No Clip
-            if LocalPlayer.Character then
-                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
+            -- Enable No Clip - maintain it continuously
+            if NoClipConnection then
+                NoClipConnection:Disconnect()
+            end
+            NoClipConnection = RunService.Stepped:Connect(function()
+                if LocalPlayer.Character then
+                    for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
                     end
                 end
-            end
+            end)
         else
             -- Disable No Clip
+            if NoClipConnection then
+                NoClipConnection:Disconnect()
+                NoClipConnection = nil
+            end
             if LocalPlayer.Character then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
                     if part:IsA("BasePart") then
@@ -1164,6 +1184,26 @@ NoClipFlySection:AddToggle({
         end
     end
 })
+
+-- Maintain noclip on character respawn
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    if NoClipEnabled then
+        -- Wait a bit for character to fully load
+        task.wait(0.1)
+        if NoClipConnection then
+            NoClipConnection:Disconnect()
+        end
+        NoClipConnection = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+end)
 
 -- Fly Toggle
 local FlyEnabled = false
